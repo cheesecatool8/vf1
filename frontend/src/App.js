@@ -7,12 +7,15 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 
 // 使用环境变量或默认值
-const API_URL = import.meta.env.VITE_API_URL || "https://little-smoke-90a1.imluluj8-7a3.workers.dev";
-const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || "https://storage-worker.imluluj8-7a3.workers.dev";
+const API_URL = import.meta.env.VITE_API_URL || 'https://cheesecatool-backend.onrender.com';
+const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || 'https://storage-worker.imluluj8-7a3.workers.dev';
 
 // 增加调试日志
-console.log('API_URL:', import.meta.env.VITE_API_URL);
-console.log('STORAGE_URL:', import.meta.env.VITE_STORAGE_URL);
+console.log('环境变量:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  API_URL,
+  STORAGE_URL
+});
 
 function App() {
   const [videoFile, setVideoFile] = useState(null);
@@ -43,10 +46,6 @@ function App() {
     setError('');
     
     try {
-      if (!API_URL) {
-        throw new Error('API配置错误，请检查环境变量设置');
-      }
-
       const formData = new FormData();
       
       if (videoFile) {
@@ -62,7 +61,7 @@ function App() {
         formData.append(key, options[key]);
       });
       
-      // 在fetch请求中确保完整URL
+      // 修改API请求路径
       const apiUrl = `${API_URL}/api/extract-frames`;
       console.log('发送请求到:', apiUrl);
       
@@ -70,6 +69,9 @@ function App() {
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
+        headers: {
+          'Accept': 'application/json',
+        }
       });
       
       if (!response.ok) {

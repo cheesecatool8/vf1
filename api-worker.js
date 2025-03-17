@@ -6,7 +6,7 @@ export default {
         const headers = new Headers({
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
           'Content-Type': 'application/json'
         });
 
@@ -23,46 +23,49 @@ export default {
         // Render.com 后端 URL
         const renderUrl = "https://cheesecatool-backend.onrender.com";
 
-        try {
-          // 检查路径是否以 /api/ 开头
-          if (path.startsWith('/api/')) {
-            console.log('转发请求到 Render.com:', `${renderUrl}${path}`);
-            
-            // 创建一个新的请求转发到Render.com
-            const renderRequest = new Request(`${renderUrl}${path}`, {
-              method: request.method,
-              headers: request.headers,
-              body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.blob() : undefined
-            });
-            
+        // 检查路径是否以 /api/ 开头
+        if (path.startsWith('/api/')) {
+          console.log('转发请求到 Render.com:', `${renderUrl}${path}`);
+          
+          // 保持原始请求头
+          const newHeaders = new Headers(request.headers);
+          newHeaders.set('Origin', renderUrl);
+          
+          // 创建一个新的请求转发到Render.com
+          const renderRequest = new Request(`${renderUrl}${path}`, {
+            method: request.method,
+            headers: newHeaders,
+            body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.blob() : undefined
+          });
+          
+          try {
             // 发送请求到Render.com
             const renderResponse = await fetch(renderRequest);
             console.log('Render响应状态:', renderResponse.status);
             
             // 获取响应内容和状态
             const responseBody = await renderResponse.blob();
-            const responseStatus = renderResponse.status;
             
             // 创建Response对象，包含CORS头
-            const newHeaders = new Headers(renderResponse.headers);
-            newHeaders.set('Access-Control-Allow-Origin', '*');
-            newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-            newHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            const responseHeaders = new Headers(renderResponse.headers);
+            responseHeaders.set('Access-Control-Allow-Origin', '*');
+            responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
             
             return new Response(responseBody, {
-              status: responseStatus,
-              headers: newHeaders
+              status: renderResponse.status,
+              headers: responseHeaders
+            });
+          } catch (error) {
+            console.error('代理请求错误:', error);
+            return new Response(JSON.stringify({
+              error: '代理请求失败',
+              details: error.message
+            }), {
+              headers,
+              status: 502
             });
           }
-        } catch (error) {
-          console.error('代理请求错误:', error.message, '路径:', path);
-          return new Response(JSON.stringify({
-            error: `代理请求失败: ${error.message}`,
-            path: path
-          }), {
-            headers,
-            status: 500
-          });
         }
 
         // 默认响应
@@ -74,9 +77,10 @@ export default {
           status: 200
         });
       } catch (error) {
-        console.error('整体处理错误:', error.message);
+        console.error('整体处理错误:', error);
         return new Response(JSON.stringify({
-          error: error.message
+          error: '服务器内部错误',
+          details: error.message
         }), {
           headers: {
             'Access-Control-Allow-Origin': '*',
