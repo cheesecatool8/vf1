@@ -78,96 +78,101 @@ def allowed_file(filename):
 def index():
     return render_template('index.html')
 
-@app.route('/upload', methods=['POST'])
+@app.route('/api/extract-frames', methods=['POST'])
 @rate_limit(limit=5, per=300)  # 5次/5分钟
-def upload_file():
-    if 'video' not in request.files:
-        flash('未找到视频文件')
-        return redirect(request.url)
+def extract_frames_api():
+    if 'video' not in request.files and 'videoUrl' not in request.form:
+        return jsonify({'error': '未找到视频文件或URL'}), 400
     
-    file = request.files['video']
-    if file.filename == '':
-        flash('未选择文件')
-        return redirect(request.url)
-    
-    if file and allowed_file(file.filename):
-        try:
-            # 生成唯一文件名
+    try:
+        # 生成唯一文件名
+        unique_filename = f"{uuid.uuid4().hex}"
+        folder_name = unique_filename
+        
+        # 获取表单参数
+        fps = float(request.form.get('fps', DEFAULT_FPS))
+        start_time = request.form.get('start_time')
+        start_time = float(start_time) if start_time and start_time.strip() else None
+        end_time = request.form.get('end_time')
+        end_time = float(end_time) if end_time and end_time.strip() else None
+        format_type = request.form.get('format', DEFAULT_FORMAT)
+        quality = int(request.form.get('quality', DEFAULT_QUALITY))
+        
+        # 创建临时目录
+        temp_dir = os.path.join('/tmp', folder_name)
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        # 处理视频文件或URL
+        if 'video' in request.files:
+            file = request.files['video']
+            if file.filename == '':
+                return jsonify({'error': '未选择文件'}), 400
+            
+            if not allowed_file(file.filename):
+                return jsonify({'error': '不支持的文件类型。允许的类型: ' + ', '.join(ALLOWED_EXTENSIONS)}), 400
+            
             original_filename = secure_filename(file.filename)
             file_extension = original_filename.rsplit('.', 1)[1].lower()
-            unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
-            folder_name = unique_filename.split('.')[0]
-            
-            # 获取表单参数
-            fps = float(request.form.get('fps', DEFAULT_FPS))
-            start_time = request.form.get('start_time')
-            start_time = float(start_time) if start_time and start_time.strip() else None
-            end_time = request.form.get('end_time')
-            end_time = float(end_time) if end_time and end_time.strip() else None
-            format_type = request.form.get('format', DEFAULT_FORMAT)
-            quality = int(request.form.get('quality', DEFAULT_QUALITY))
+            video_filename = f"{unique_filename}.{file_extension}"
             
             # 上传视频到 R2
-            video_object_name = f"videos/{folder_name}/{unique_filename}"
+            video_object_name = f"videos/{folder_name}/{video_filename}"
             content_type = mimetypes.guess_type(original_filename)[0]
             if not r2_storage.upload_fileobj(file, video_object_name, content_type):
-                flash('上传视频失败')
-                return redirect(url_for('index'))
-            
-            # 创建临时目录
-            temp_dir = os.path.join('/tmp', folder_name)
-            os.makedirs(temp_dir, exist_ok=True)
+                return jsonify({'error': '上传视频失败'}), 500
             
             # 下载视频到临时目录
-            temp_video_path = os.path.join(temp_dir, unique_filename)
+            temp_video_path = os.path.join(temp_dir, video_filename)
             if not r2_storage.download_file(video_object_name, temp_video_path):
-                flash('处理视频失败')
-                return redirect(url_for('index'))
-            
-            # 提取帧
-            frames = extract_frames(
-                temp_video_path,
-                temp_dir,
-                fps=fps,
-                start_time=start_time,
-                end_time=end_time,
-                format=format_type,
-                quality=quality
-            )
-            
-            # 上传帧到 R2
-            frame_urls = []
-            for frame_file in os.listdir(temp_dir):
-                if frame_file.endswith(f'.{format_type}'):
-                    frame_path = os.path.join(temp_dir, frame_file)
-                    frame_object_name = f"frames/{folder_name}/{frame_file}"
-                    content_type = f'image/{format_type}'
-                    
-                    if r2_storage.upload_file(frame_path, frame_object_name, content_type):
-                        frame_url = r2_storage.get_presigned_url(frame_object_name)
-                        if frame_url:
-                            frame_urls.append({
-                                'url': frame_url,
-                                'filename': frame_file
-                            })
-            
-            # 清理临时文件
-            for file in os.listdir(temp_dir):
-                os.remove(os.path.join(temp_dir, file))
-            os.rmdir(temp_dir)
-            
-            # 返回结果
-            return jsonify({
-                'success': True,
-                'folder_name': folder_name,
-                'frames': frame_urls
-            })
-            
-        except Exception as e:
-            logger.error(f"处理视频时出错: {str(e)}")
-            return jsonify({'error': f'处理视频时出错: {str(e)}'}), 500
-    else:
-        return jsonify({'error': '不支持的文件类型。允许的类型: ' + ', '.join(ALLOWED_EXTENSIONS)}), 400
+                return jsonify({'error': '处理视频失败'}), 500
+        else:
+            # 处理视频URL
+            video_url = request.form['videoUrl']
+            # TODO: 从URL下载视频
+            return jsonify({'error': 'URL视频处理功能尚未实现'}), 501
+        
+        # 提取帧
+        frames = extract_frames(
+            temp_video_path,
+            temp_dir,
+            fps=fps,
+            start_time=start_time,
+            end_time=end_time,
+            format=format_type,
+            quality=quality
+        )
+        
+        # 上传帧到 R2
+        frame_urls = []
+        for frame_file in os.listdir(temp_dir):
+            if frame_file.endswith(f'.{format_type}'):
+                frame_path = os.path.join(temp_dir, frame_file)
+                frame_object_name = f"frames/{folder_name}/{frame_file}"
+                content_type = f'image/{format_type}'
+                
+                if r2_storage.upload_file(frame_path, frame_object_name, content_type):
+                    frame_url = r2_storage.get_presigned_url(frame_object_name)
+                    if frame_url:
+                        frame_urls.append({
+                            'url': frame_url,
+                            'filename': frame_file
+                        })
+        
+        # 清理临时文件
+        for file in os.listdir(temp_dir):
+            os.remove(os.path.join(temp_dir, file))
+        os.rmdir(temp_dir)
+        
+        # 返回结果
+        return jsonify({
+            'success': True,
+            'folder_name': folder_name,
+            'frames': frame_urls
+        })
+        
+    except Exception as e:
+        logger.error(f"处理视频时出错: {str(e)}")
+        return jsonify({'error': f'处理视频时出错: {str(e)}'}), 500
 
 @app.route('/frames/<folder_name>')
 def get_frames(folder_name):

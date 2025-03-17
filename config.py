@@ -19,7 +19,11 @@ ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv'}
 MAX_CONTENT_LENGTH = 500 * 1024 * 1024
 
 # CORS 设置
-CORS_ORIGINS = ['*']
+CORS_ORIGINS = [
+    'https://video-frame.pages.dev',  # Cloudflare Pages 域名
+    'http://localhost:10000',          # 本地开发环境
+    'http://127.0.0.1:10000'          # 本地开发环境
+]
 
 # 默认参数
 DEFAULT_FPS = 1.0

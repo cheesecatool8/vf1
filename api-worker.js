@@ -6,8 +6,8 @@ export default {
         const headers = new Headers({
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
-          'Content-Type': 'application/json'
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Expose-Headers': '*'
         });
 
         // 处理 OPTIONS 请求
@@ -27,15 +27,15 @@ export default {
         if (path.startsWith('/api/')) {
           console.log('转发请求到 Render.com:', `${renderUrl}${path}`);
           
-          // 保持原始请求头
+          // 创建新的Headers对象，保留原始请求的所有头部
           const newHeaders = new Headers(request.headers);
-          newHeaders.set('Origin', renderUrl);
           
           // 创建一个新的请求转发到Render.com
           const renderRequest = new Request(`${renderUrl}${path}`, {
             method: request.method,
             headers: newHeaders,
-            body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.blob() : undefined
+            body: request.body,
+            duplex: 'half'  // 添加这个选项来处理流
           });
           
           try {
@@ -43,14 +43,15 @@ export default {
             const renderResponse = await fetch(renderRequest);
             console.log('Render响应状态:', renderResponse.status);
             
-            // 获取响应内容和状态
-            const responseBody = await renderResponse.blob();
-            
             // 创建Response对象，包含CORS头
             const responseHeaders = new Headers(renderResponse.headers);
             responseHeaders.set('Access-Control-Allow-Origin', '*');
             responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-            responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+            responseHeaders.set('Access-Control-Allow-Headers', '*');
+            responseHeaders.set('Access-Control-Expose-Headers', '*');
+            
+            // 获取响应内容
+            const responseBody = await renderResponse.blob();
             
             return new Response(responseBody, {
               status: renderResponse.status,

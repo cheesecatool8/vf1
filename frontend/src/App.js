@@ -3,12 +3,11 @@ import './App.css';
 import UploadForm from './components/UploadForm';
 import VideoPlayer from './components/VideoPlayer';
 import FrameGallery from './components/FrameGallery';
-import Header from './components/Header';
 import Footer from './components/Footer';
 
 // 使用环境变量或默认值
-const API_URL = import.meta.env.VITE_API_URL || 'https://cheesecatool-backend.onrender.com';
-const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || 'https://storage-worker.imluluj8-7a3.workers.dev';
+const API_URL = process.env.REACT_APP_API_URL || 'https://cheesecatool-backend.onrender.com';
+const STORAGE_URL = process.env.REACT_APP_STORAGE_URL || 'https://storage-worker.imluluj8-7a3.workers.dev';
 
 // 增加调试日志
 console.log('环境变量:', {
@@ -50,8 +49,10 @@ function App() {
       
       if (videoFile) {
         formData.append('video', videoFile);
+        console.log('上传文件:', videoFile.name, videoFile.size);
       } else if (videoUrl) {
         formData.append('videoUrl', videoUrl);
+        console.log('上传URL:', videoUrl);
       } else {
         throw new Error('请先上传视频或提供视频链接');
       }
@@ -75,8 +76,14 @@ function App() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `请求失败 (${response.status}): ${response.statusText}`);
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || `请求失败 (${response.status}): ${response.statusText}`;
+        } catch (e) {
+          errorMessage = `请求失败 (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
