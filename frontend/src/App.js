@@ -10,6 +10,10 @@ import Footer from './components/Footer';
 const API_URL = import.meta.env.VITE_API_URL || "https://little-smoke-90a1.imluluj8-7a3.workers.dev";
 const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || "https://storage-worker.imluluj8-7a3.workers.dev";
 
+// 增加调试日志
+console.log('API_URL:', import.meta.env.VITE_API_URL);
+console.log('STORAGE_URL:', import.meta.env.VITE_STORAGE_URL);
+
 function App() {
   const [videoFile, setVideoFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState('');
@@ -54,10 +58,12 @@ function App() {
         formData.append(key, options[key]);
       });
       
-      console.log('发送请求到:', `${API_URL}/api/extract-frames`);
+      // 在fetch请求中确保完整URL
+      const apiUrl = `${API_URL}/api/extract-frames`;
+      console.log('发送请求到:', apiUrl);
       
       // 发送到后端API
-      const response = await fetch(`${API_URL}/api/extract-frames`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
       });
