@@ -43,6 +43,10 @@ function App() {
     setError('');
     
     try {
+      if (!API_URL) {
+        throw new Error('API配置错误，请检查环境变量设置');
+      }
+
       const formData = new FormData();
       
       if (videoFile) {
@@ -69,15 +73,18 @@ function App() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '提取视频帧失败');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `请求失败 (${response.status}): ${response.statusText}`);
       }
       
       const data = await response.json();
+      if (!data.frames || !Array.isArray(data.frames)) {
+        throw new Error('服务器返回数据格式错误');
+      }
       setFrames(data.frames);
     } catch (err) {
       console.error('提取帧时出错:', err);
-      setError(err.message || '提取视频帧失败');
+      setError(err.message || '网络请求失败，请检查网络连接');
     } finally {
       setLoading(false);
     }
@@ -87,14 +94,14 @@ function App() {
     <div className="App">
       {/* 顶部导航栏 */}
       <div className="top-nav">
-        <img src="/images/cat-icon.png" alt="猫咪图标" className="nav-logo" />
+        <img src="images/cat-icon.png" alt="猫咪图标" className="nav-logo" />
         <div className="nav-title">芝士猫视频工具</div>
       </div>
       
       <div className="container">
         {/* 标题与图标 */}
         <div className="title-with-icon">
-          <img src="/images/cat-icon.png" alt="猫咪图标" className="cat-icon" />
+          <img src="images/cat-icon.png" alt="猫咪图标" className="cat-icon" />
           <h1 className="text-3xl font-bold">视频帧提取器</h1>
         </div>
         
