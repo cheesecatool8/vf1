@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提取的视频帧</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #7f8c8d;
+        }
+        .btn-secondary:hover {
+            background-color: #667273;
+        }
+        .frames-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .frame-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .frame-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .frame-image {
+            width: 100%;
+            height:80px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+        .frame-info {
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        .frame-number {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        .download-link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .download-link:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        .no-frames {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            color: #fff;
+            background-color: #e74c3c;
+        }
+        .flash-message.success {
+            background-color: #2ecc71;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>提取的视频帧</h1>
+        
+        {% if get_flashed_messages() %}
+        <ul class="flash-messages">
+            {% for message in get_flashed_messages() %}
+                <li class="flash-message">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <div class="actions">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">返回首页</a>
+            <a href="{{ url_for('download_all', folder_name=folder_name) }}" class="btn">下载所有帧</a>
+        </div>
+        
+        {% if frames|length > 0 %}
+            <div class="frames-container">
+                {% for frame in frames %}
+                    <div class="frame-card">
+                        <img src="{{ url_for('frame_file', folder_name=folder_name, filename=frame) }}" 
+                             alt="Frame {{ loop.index }}" 
+                             class="frame-image"
+                             onclick="showImage('{{ url_for('frame_file', folder_name=folder_name, filename=frame) }}')">
+                        <div class="frame-info">
+                            <p class="frame-number">帧 {{ loop.index }}</p>
+                            <a href="{{ url_for('frame_file', folder_name=folder_name, filename=frame) }}" 
+                               download="{{ frame }}" 
+                               class="download-link">下载</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-frames">
+                <p>未找到任何帧。请检查视频文件是否正确提取。</p>
+            </div>
+        {% endif %}
+        
+        <footer>
+            <p>视频帧提取工具 &copy; 2025</p>
+        </footer>
+    </div>
+    
+    <div class="image-modal" id="image-modal">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modal-image">
+    </div>
+    
+    <script>
+        // 图片预览功能
+        function showImage(src) {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-image');
+            modal.style.display = 'flex';
+            modalImg.src = src;
+        }
+        
+        function closeModal() {
+            document.getElementById('image-modal').style.display = 'none';
+        }
+        
+        // 点击模态框背景关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('image-modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 
