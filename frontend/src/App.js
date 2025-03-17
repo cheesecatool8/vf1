@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import './App.css';
-import { UploadOutlined } from '@ant-design/icons';
-import { Button, Tabs, Upload, Form, Input, Slider, Select, InputNumber, message } from 'antd';
 import UploadForm from './components/UploadForm';
 import VideoPlayer from './components/VideoPlayer';
 import FrameGallery from './components/FrameGallery';
