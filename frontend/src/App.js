@@ -7,8 +7,8 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 
 // 使用环境变量或默认值
-const API_URL = process.env.REACT_APP_API_URL || "https://little-smoke-90a1.imluluj8-7a3.workers.dev";
-const STORAGE_URL = process.env.REACT_APP_STORAGE_URL || "https://storage-worker.imluluj8-7a3.workers.dev";
+const API_URL = import.meta.env.VITE_API_URL || "https://little-smoke-90a1.imluluj8-7a3.workers.dev";
+const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || "https://storage-worker.imluluj8-7a3.workers.dev";
 
 function App() {
   const [videoFile, setVideoFile] = useState(null);
@@ -44,7 +44,7 @@ function App() {
       if (videoFile) {
         formData.append('video', videoFile);
       } else if (videoUrl) {
-        formData.append('url', videoUrl);
+        formData.append('videoUrl', videoUrl);
       } else {
         throw new Error('请先上传视频或提供视频链接');
       }
@@ -53,6 +53,8 @@ function App() {
       Object.keys(options).forEach(key => {
         formData.append(key, options[key]);
       });
+      
+      console.log('发送请求到:', `${API_URL}/api/extract-frames`);
       
       // 发送到后端API
       const response = await fetch(`${API_URL}/api/extract-frames`, {
@@ -77,12 +79,21 @@ function App() {
 
   return (
     <div className="App">
-      <Header />
+      {/* 顶部导航栏 */}
+      <div className="top-nav">
+        <img src="/images/cat-icon.png" alt="猫咪图标" className="nav-logo" />
+        <div className="nav-title">芝士猫视频工具</div>
+      </div>
       
-      <main className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold text-center mb-8">视频帧提取器</h1>
+      <div className="container">
+        {/* 标题与图标 */}
+        <div className="title-with-icon">
+          <img src="/images/cat-icon.png" alt="猫咪图标" className="cat-icon" />
+          <h1 className="text-3xl font-bold">视频帧提取器</h1>
+        </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+        {/* 表单区域 */}
+        <div className="bg-white rounded-lg mb-8">
           <UploadForm 
             onVideoUpload={handleVideoUpload} 
             onVideoUrl={handleVideoUrl}
@@ -91,32 +102,32 @@ function App() {
         </div>
         
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          <div className="flash-message">
             {error}
           </div>
         )}
         
         {videoUrl && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+          <div className="bg-white rounded-lg mb-8">
             <h2 className="text-xl font-semibold mb-4">预览视频</h2>
             <VideoPlayer videoUrl={videoUrl} />
           </div>
         )}
         
         {loading && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-8 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mr-2"></div>
-            <p className="inline-block">正在提取视频帧，请稍候...</p>
+          <div className="loading" style={{display: 'block'}}>
+            <div className="spinner"></div>
+            <p>正在提取视频帧，请稍候...</p>
           </div>
         )}
         
         {frames.length > 0 && (
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div id="results-section" style={{display: 'block'}}>
             <h2 className="text-xl font-semibold mb-4">提取的帧</h2>
             <FrameGallery frames={frames} />
           </div>
         )}
-      </main>
+      </div>
       
       <Footer />
     </div>

@@ -33,109 +33,123 @@ function FrameGallery({ frames }) {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="actions">
         <div>
-          <span className="text-gray-700">共 {frames.length} 帧</span>
+          <span className="frames-count">共 {frames.length} 帧</span>
         </div>
         
-        <div className="flex space-x-2">
+        <div className="view-controls">
           <button
-            className={`px-3 py-1 rounded ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+            className={`btn ${viewMode === 'grid' ? 'active' : ''}`}
             onClick={() => setViewMode('grid')}
           >
-            网格
+            网格查看
           </button>
           <button
-            className={`px-3 py-1 rounded ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+            className={`btn ${viewMode === 'list' ? 'active' : ''}`}
             onClick={() => setViewMode('list')}
           >
-            列表
+            列表查看
           </button>
           <button
             onClick={downloadAllFrames}
-            className="flex items-center px-3 py-1 bg-green-600 text-white rounded ml-2"
+            className="btn btn-download"
           >
-            <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
             下载全部
           </button>
         </div>
       </div>
       
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="frames-container">
           {frames.map((frame, index) => (
-            <div key={index} className="bg-gray-100 rounded p-2">
-              <div className="relative group">
+            <div key={index} className="frame-card">
+              <div className="frame-image-container">
                 <img
                   src={frame.url}
                   alt={`Frame ${index}`}
-                  className="w-full h-auto rounded cursor-pointer"
+                  className="frame-image"
                   onClick={() => openFrame(frame)}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <div className="frame-hover-overlay">
                   <button
-                    onClick={() => downloadFrame(frame)}
-                    className="bg-white rounded-full p-2 mx-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadFrame(frame);
+                    }}
+                    className="frame-action-btn"
+                    title="下载"
                   >
-                    <svg className="h-5 w-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                     </svg>
                   </button>
                   <button
                     onClick={() => openFrame(frame)}
-                    className="bg-white rounded-full p-2 mx-1"
+                    className="frame-action-btn"
+                    title="查看"
                   >
-                    <svg className="h-5 w-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                   </button>
                 </div>
               </div>
-              <div className="mt-2 text-xs text-gray-600">
-                <div>时间戳: {frame.timestamp || `${index + 1}`}</div>
-                <div>格式: {frame.format || 'JPG'}</div>
+              <div className="frame-info">
+                <p className="frame-number">帧 {index + 1}</p>
+                <p className="frame-timestamp">时间戳: {frame.timestamp || '未知'}</p>
+                <a
+                  href={frame.url}
+                  download={`frame_${frame.timestamp || index}.${frame.format || 'jpg'}`}
+                  className="download-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    downloadFrame(frame);
+                  }}
+                >
+                  下载
+                </a>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="border rounded">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="frames-table-container">
+          <table className="frames-table">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">预览</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">帧</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间戳</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">格式</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                <th>预览</th>
+                <th>帧</th>
+                <th>时间戳</th>
+                <th>格式</th>
+                <th>操作</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {frames.map((frame, index) => (
                 <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="thumbnail-cell">
                     <img
                       src={frame.url}
                       alt={`Frame ${index}`}
-                      className="h-14 w-auto rounded cursor-pointer"
+                      className="thumbnail"
                       onClick={() => openFrame(frame)}
                     />
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{frame.timestamp || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{frame.format || 'JPG'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td>{index + 1}</td>
+                  <td>{frame.timestamp || '-'}</td>
+                  <td>{frame.format || 'JPG'}</td>
+                  <td className="actions-cell">
                     <button
                       onClick={() => downloadFrame(frame)}
-                      className="text-blue-600 hover:text-blue-800 mr-3"
+                      className="table-action-btn download-btn"
                     >
                       下载
                     </button>
                     <button
                       onClick={() => openFrame(frame)}
-                      className="text-gray-600 hover:text-gray-800"
+                      className="table-action-btn view-btn"
                     >
                       查看
                     </button>
@@ -148,36 +162,36 @@ function FrameGallery({ frames }) {
       )}
       
       {selectedFrame && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="modal-title">
                 帧 {frames.indexOf(selectedFrame) + 1}
                 {selectedFrame.timestamp && ` - 时间戳: ${selectedFrame.timestamp}`}
               </h3>
               <button
                 onClick={closeFrame}
-                className="text-gray-500 hover:text-gray-700"
+                className="modal-close-btn"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="p-4 flex justify-center">
+            <div className="modal-body">
               <img
                 src={selectedFrame.url}
                 alt={`Frame ${frames.indexOf(selectedFrame)}`}
-                className="max-h-[70vh] max-w-full"
+                className="modal-image"
               />
             </div>
-            <div className="p-4 border-t flex justify-end">
+            <div className="modal-footer">
               <button
                 onClick={() => downloadFrame(selectedFrame)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded"
+                className="btn download-frame-btn"
               >
-                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="download-icon">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                 </svg>
                 下载此帧
               </button>
