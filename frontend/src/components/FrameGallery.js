@@ -1,10 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function FrameGallery({ frames }) {
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedFrames, setSelectedFrames] = useState([]);
+
+  // 用于键盘导航的事件处理
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!lightboxImage) return;
+      
+      if (e.key === 'ArrowRight') {
+        viewNextImage(e);
+      } else if (e.key === 'ArrowLeft') {
+        viewPrevImage(e);
+      } else if (e.key === 'Escape') {
+        closeLightbox();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [lightboxImage, lightboxIndex]);
 
   const downloadFrame = (frame) => {
     // 始终在新窗口打开下载链接
@@ -59,7 +79,7 @@ function FrameGallery({ frames }) {
 
   // 查看下一张图片
   const viewNextImage = (e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     const nextIndex = (lightboxIndex + 1) % frames.length;
     setLightboxIndex(nextIndex);
     setLightboxImage(frames[nextIndex]);
@@ -67,7 +87,7 @@ function FrameGallery({ frames }) {
 
   // 查看上一张图片
   const viewPrevImage = (e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     const prevIndex = (lightboxIndex - 1 + frames.length) % frames.length;
     setLightboxIndex(prevIndex);
     setLightboxImage(frames[prevIndex]);
@@ -81,9 +101,9 @@ function FrameGallery({ frames }) {
           <button
             onClick={downloadSelectedFrames}
             className="btn btn-download selected-download-btn"
-            style={{ display: selectedFrames.length > 0 ? 'inline-block' : 'none' }}
+            style={{ display: 'inline-block' }} // 始终显示选中下载按钮
           >
-            下载选中视频帧 ({selectedFrames.length})
+            下载选中视频帧 {selectedFrames.length > 0 ? `(${selectedFrames.length})` : ''}
           </button>
         </div>
         
@@ -193,13 +213,13 @@ function FrameGallery({ frames }) {
         </div>
       )}
 
-      {/* Lightbox组件 */}
+      {/* Lightbox组件 - 添加更明显的导航按钮 */}
       {lightboxImage && (
         <div className="lightbox-overlay" onClick={closeLightbox}>
           <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
             <button className="lightbox-close" onClick={closeLightbox}>×</button>
             
-            <button className="lightbox-nav lightbox-prev" onClick={viewPrevImage} style={{ display: 'block' }}>
+            <button className="lightbox-nav lightbox-prev" onClick={viewPrevImage} title="上一张图片">
               &#10094;
             </button>
             
@@ -209,11 +229,14 @@ function FrameGallery({ frames }) {
               className="lightbox-image" 
             />
             
-            <button className="lightbox-nav lightbox-next" onClick={viewNextImage} style={{ display: 'block' }}>
+            <button className="lightbox-nav lightbox-next" onClick={viewNextImage} title="下一张图片">
               &#10095;
             </button>
             
             <div className="lightbox-footer">
+              <div className="lightbox-caption">
+                第 {lightboxIndex + 1} 帧 / 共 {frames.length} 帧
+              </div>
               <button 
                 className="lightbox-download-btn" 
                 onClick={() => downloadFrame(lightboxImage)}
