@@ -10,7 +10,7 @@ R2_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY')
 R2_BUCKET_NAME = os.getenv('R2_BUCKET_NAME', 'cheesecatool')
 
 # Worker URL
-WORKER_URL = os.getenv('WORKER_URL', 'https://storage-worker.imluluj8-7a3.workers.dev')
+WORKER_URL = os.getenv('WORKER_URL', 'https://storage.y.cheesecatool.com')
 
 # 允许的文件类型
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv'}
@@ -20,10 +20,10 @@ MAX_CONTENT_LENGTH = 500 * 1024 * 1024
 
 # CORS 设置 - 确保允许前端域名
 CORS_ORIGINS = [
-    'https://video-frame.pages.dev',    # 主域名
-    'https://*.video-frame.pages.dev',  # 子域名
-    'http://localhost:3000',            # 本地开发
-    '*'                                 # 临时允许所有域名
+    'https://y.cheesecatool.com',     # 自定义主域名
+    'https://video-frame.pages.dev',  # Cloudflare Pages域名
+    'http://localhost:3000',          # 本地开发
+    '*'                               # 临时允许所有域名
 ]
 
 # 默认参数
