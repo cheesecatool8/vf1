@@ -21,7 +21,10 @@ export default {
     const path = url.pathname;
     
     console.log(`处理请求: ${request.method} ${path}`);
-    console.log(`请求头: ${JSON.stringify([...request.headers])}`);
+
+    // 获取请求头的Content-Type
+    const contentType = request.headers.get('Content-Type') || '';
+    console.log(`请求Content-Type: ${contentType}`);
 
     try {
       // 所有API请求转发到Render.com后端
@@ -33,10 +36,13 @@ export default {
         
         console.log(`转发请求到: ${backendEndpoint}`);
 
+        // 确保不修改原始内容类型
+        const newHeaders = new Headers(request.headers);
+        
         // 克隆原始请求但修改目标URL
         const backendRequest = new Request(backendEndpoint, {
           method: request.method,
-          headers: request.headers,
+          headers: newHeaders,
           body: request.body,
           redirect: 'follow',
         });
@@ -46,7 +52,6 @@ export default {
         const backendResponse = await fetch(backendRequest);
         
         console.log(`后端响应状态: ${backendResponse.status}`);
-        console.log(`后端响应头: ${JSON.stringify([...backendResponse.headers])}`);
 
         // 读取响应体
         const responseBody = await backendResponse.arrayBuffer();
@@ -56,6 +61,16 @@ export default {
         Object.keys(corsHeaders).forEach(key => {
           responseHeaders.set(key, corsHeaders[key]);
         });
+
+        // 如果响应状态为500且是JSON格式，尝试解析错误信息
+        if (backendResponse.status === 500) {
+          try {
+            const errorText = new TextDecoder().decode(responseBody);
+            console.error(`后端错误: ${errorText}`);
+          } catch (e) {
+            console.error(`无法解析后端错误: ${e}`);
+          }
+        }
 
         return new Response(responseBody, {
           status: backendResponse.status,

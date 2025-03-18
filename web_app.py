@@ -150,7 +150,7 @@ def extract_frames_api():
         # 提取帧
         logger.info(f"开始提取帧: fps={fps}, format={format_type}, quality={quality}")
         try:
-            frames = extract_frames(
+            frame_count = extract_frames(
                 temp_video_path,
                 temp_dir,
                 fps=fps,
@@ -159,7 +159,7 @@ def extract_frames_api():
                 format=format_type,
                 quality=quality
             )
-            logger.info(f"提取了 {len(frames)} 个帧")
+            logger.info(f"提取了 {frame_count} 个帧")
         except Exception as e:
             logger.error(f"提取帧时出错: {str(e)}")
             return jsonify({'error': f'提取帧时出错: {str(e)}'}), 500
