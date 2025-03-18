@@ -109,14 +109,14 @@ function App() {
       {/* 顶部导航栏 */}
       <div className="top-nav">
         <img src="images/cat-icon.png" alt="猫咪图标" className="nav-logo" />
-        <div className="nav-title">芝士猫视频工具</div>
+        <div className="nav-title">芝士猫万能工具箱</div>
       </div>
       
       <div className="container">
         {/* 标题与图标 */}
         <div className="title-with-icon">
           <img src="images/cat-icon.png" alt="猫咪图标" className="cat-icon" />
-          <h1 className="text-3xl font-bold">视频帧提取器</h1>
+          <h1 className="text-3xl font-bold">芝士猫视频帧万能无损提取工具</h1>
         </div>
         
         {/* 表单区域 */}
