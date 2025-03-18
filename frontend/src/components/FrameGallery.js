@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 
 function FrameGallery({ frames }) {
-  const [selectedFrame, setSelectedFrame] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid or list
-
-  const openFrame = (frame) => {
-    setSelectedFrame(frame);
-  };
-
-  const closeFrame = () => {
-    setSelectedFrame(null);
-  };
 
   const downloadFrame = (frame) => {
     const link = document.createElement('a');
@@ -164,45 +155,6 @@ function FrameGallery({ frames }) {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
-      
-      {selectedFrame && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3 className="modal-title">
-                帧 {frames.indexOf(selectedFrame) + 1}
-                {selectedFrame.timestamp && ` - 时间戳: ${selectedFrame.timestamp}`}
-              </h3>
-              <button
-                onClick={closeFrame}
-                className="modal-close-btn"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="modal-body">
-              <img
-                src={selectedFrame.url}
-                alt={`Frame ${frames.indexOf(selectedFrame)}`}
-                className="modal-image"
-              />
-            </div>
-            <div className="modal-footer">
-              <button
-                onClick={() => downloadFrame(selectedFrame)}
-                className="btn download-frame-btn"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="download-icon">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                </svg>
-                下载此帧
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>
