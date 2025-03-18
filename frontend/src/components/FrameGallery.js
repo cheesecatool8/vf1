@@ -31,6 +31,11 @@ function FrameGallery({ frames }) {
     });
   };
 
+  // 直接在新标签页打开图片
+  const openImageInNewTab = (url) => {
+    window.open(url, '_blank');
+  };
+
   return (
     <div>
       <div className="actions">
@@ -69,7 +74,8 @@ function FrameGallery({ frames }) {
                   src={frame.url}
                   alt={`Frame ${index}`}
                   className="frame-image"
-                  onClick={() => openFrame(frame)}
+                  onClick={() => openImageInNewTab(frame.url)}
+                  title="点击在新标签页查看原图"
                 />
                 <div className="frame-hover-overlay">
                   <button
@@ -85,13 +91,12 @@ function FrameGallery({ frames }) {
                     </svg>
                   </button>
                   <button
-                    onClick={() => openFrame(frame)}
+                    onClick={() => openImageInNewTab(frame.url)}
                     className="frame-action-btn"
-                    title="查看"
+                    title="在新标签页查看原图"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </button>
                 </div>
@@ -134,7 +139,8 @@ function FrameGallery({ frames }) {
                       src={frame.url}
                       alt={`Frame ${index}`}
                       className="thumbnail"
-                      onClick={() => openFrame(frame)}
+                      onClick={() => openImageInNewTab(frame.url)}
+                      title="点击在新标签页查看原图"
                     />
                   </td>
                   <td>{index + 1}</td>
@@ -148,7 +154,7 @@ function FrameGallery({ frames }) {
                       下载
                     </button>
                     <button
-                      onClick={() => openFrame(frame)}
+                      onClick={() => openImageInNewTab(frame.url)}
                       className="table-action-btn view-btn"
                     >
                       查看
