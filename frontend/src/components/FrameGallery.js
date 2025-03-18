@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 function FrameGallery({ frames }) {
   const [viewMode, setViewMode] = useState('grid'); // grid or list
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   const downloadFrame = (frame) => {
     const link = document.createElement('a');
@@ -22,9 +23,18 @@ function FrameGallery({ frames }) {
     });
   };
 
-  // 直接在新标签页打开图片
-  const openImageInNewTab = (url) => {
-    window.open(url, '_blank');
+  // 打开Lightbox
+  const openLightbox = (frame) => {
+    setLightboxImage(frame);
+    // 防止滚动
+    document.body.style.overflow = 'hidden';
+  };
+
+  // 关闭Lightbox
+  const closeLightbox = () => {
+    setLightboxImage(null);
+    // 恢复滚动
+    document.body.style.overflow = '';
   };
 
   return (
@@ -64,33 +74,10 @@ function FrameGallery({ frames }) {
                 <img
                   src={frame.url}
                   alt={`Frame ${index}`}
-                  className="frame-image"
-                  onClick={() => openImageInNewTab(frame.url)}
-                  title="点击在新标签页查看原图"
+                  className="frame-image full-image"
+                  onClick={() => openLightbox(frame)}
+                  title="点击查看大图"
                 />
-                <div className="frame-hover-overlay">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadFrame(frame);
-                    }}
-                    className="frame-action-btn"
-                    title="下载"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => openImageInNewTab(frame.url)}
-                    className="frame-action-btn"
-                    title="在新标签页查看原图"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </button>
-                </div>
               </div>
               <div className="frame-info">
                 <p className="frame-number">帧 {index + 1}</p>
@@ -129,9 +116,9 @@ function FrameGallery({ frames }) {
                     <img
                       src={frame.url}
                       alt={`Frame ${index}`}
-                      className="thumbnail"
-                      onClick={() => openImageInNewTab(frame.url)}
-                      title="点击在新标签页查看原图"
+                      className="thumbnail full-image"
+                      onClick={() => openLightbox(frame)}
+                      title="点击查看大图"
                     />
                   </td>
                   <td>{index + 1}</td>
@@ -144,17 +131,33 @@ function FrameGallery({ frames }) {
                     >
                       下载
                     </button>
-                    <button
-                      onClick={() => openImageInNewTab(frame.url)}
-                      className="table-action-btn view-btn"
-                    >
-                      查看
-                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Lightbox组件 */}
+      {lightboxImage && (
+        <div className="lightbox-overlay" onClick={closeLightbox}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button className="lightbox-close" onClick={closeLightbox}>×</button>
+            <img 
+              src={lightboxImage.url} 
+              alt="放大查看" 
+              className="lightbox-image" 
+            />
+            <div className="lightbox-footer">
+              <button 
+                className="lightbox-download-btn" 
+                onClick={() => downloadFrame(lightboxImage)}
+              >
+                下载图片
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

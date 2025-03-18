@@ -134,12 +134,18 @@ function App() {
           </div>
         )}
         
-        {videoUrl && (
-          <div className="bg-white rounded-lg mb-8">
-            <h2 className="text-xl font-semibold mb-4">预览视频</h2>
-            <VideoPlayer videoUrl={videoUrl} />
-          </div>
-        )}
+        <div className="preview-container">
+          <h2>预览视频</h2>
+          {videoUrl && (
+            <video
+              controls
+              src={videoUrl}
+              className="video-preview"
+              width="100%"
+              height="250"
+            />
+          )}
+        </div>
         
         {loading && (
           <div className="loading" style={{display: 'block'}}>
