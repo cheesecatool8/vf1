@@ -1,97 +1,90 @@
 export default {
   async fetch(request, env) {
-    // 处理请求
-    async function handleRequest(request) {
-      try {
-        const headers = new Headers({
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': '*',
-          'Access-Control-Expose-Headers': '*'
-        });
+    // 设置CORS头
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Max-Age': '86400',
+    };
 
-        // 处理 OPTIONS 请求
-        if (request.method === 'OPTIONS') {
-          return new Response(null, { headers });
-        }
-
-        const url = new URL(request.url);
-        const path = url.pathname;
-        
-        console.log('请求路径:', path, '方法:', request.method);
-
-        // Render.com 后端 URL
-        const renderUrl = "https://cheesecatool-backend.onrender.com";
-
-        // 检查路径是否以 /api/ 开头
-        if (path.startsWith('/api/')) {
-          console.log('转发请求到 Render.com:', `${renderUrl}${path}`);
-          
-          // 创建新的Headers对象，保留原始请求的所有头部
-          const newHeaders = new Headers(request.headers);
-          
-          // 创建一个新的请求转发到Render.com
-          const renderRequest = new Request(`${renderUrl}${path}`, {
-            method: request.method,
-            headers: newHeaders,
-            body: request.body,
-            duplex: 'half'  // 添加这个选项来处理流
-          });
-          
-          try {
-            // 发送请求到Render.com
-            const renderResponse = await fetch(renderRequest);
-            console.log('Render响应状态:', renderResponse.status);
-            
-            // 创建Response对象，包含CORS头
-            const responseHeaders = new Headers(renderResponse.headers);
-            responseHeaders.set('Access-Control-Allow-Origin', '*');
-            responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-            responseHeaders.set('Access-Control-Allow-Headers', '*');
-            responseHeaders.set('Access-Control-Expose-Headers', '*');
-            
-            // 获取响应内容
-            const responseBody = await renderResponse.blob();
-            
-            return new Response(responseBody, {
-              status: renderResponse.status,
-              headers: responseHeaders
-            });
-          } catch (error) {
-            console.error('代理请求错误:', error);
-            return new Response(JSON.stringify({
-              error: '代理请求失败',
-              details: error.message
-            }), {
-              headers,
-              status: 502
-            });
-          }
-        }
-
-        // 默认响应
-        return new Response(JSON.stringify({
-          message: "欢迎使用视频帧提取API",
-          version: "1.0"
-        }), {
-          headers,
-          status: 200
-        });
-      } catch (error) {
-        console.error('整体处理错误:', error);
-        return new Response(JSON.stringify({
-          error: '服务器内部错误',
-          details: error.message
-        }), {
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json'
-          },
-          status: 500
-        });
-      }
+    // 处理OPTIONS预检请求
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders
+      });
     }
 
-    return handleRequest(request);
+    // 获取请求URL和路径
+    const url = new URL(request.url);
+    const path = url.pathname;
+    
+    console.log(`处理请求: ${request.method} ${path}`);
+
+    try {
+      // 所有API请求转发到Render.com后端
+      if (path.startsWith('/api/')) {
+        // 后端URL
+        const backendUrl = 'https://cheesecatool-backend.onrender.com';
+        const backendPath = path; // 保持相同路径
+        const backendEndpoint = `${backendUrl}${backendPath}`;
+        
+        console.log(`转发请求到: ${backendEndpoint}`);
+
+        // 克隆原始请求但修改目标URL
+        const backendRequest = new Request(backendEndpoint, {
+          method: request.method,
+          headers: request.headers,
+          body: request.body,
+          redirect: 'follow',
+        });
+
+        // 发送到后端
+        const backendResponse = await fetch(backendRequest);
+        
+        console.log(`后端响应状态: ${backendResponse.status}`);
+
+        // 读取响应体
+        const responseBody = await backendResponse.arrayBuffer();
+        
+        // 创建带有CORS头的新响应
+        const responseHeaders = new Headers(backendResponse.headers);
+        Object.keys(corsHeaders).forEach(key => {
+          responseHeaders.set(key, corsHeaders[key]);
+        });
+
+        return new Response(responseBody, {
+          status: backendResponse.status,
+          statusText: backendResponse.statusText,
+          headers: responseHeaders
+        });
+      }
+
+      // 默认响应
+      return new Response(JSON.stringify({
+        message: "欢迎使用视频帧提取API",
+        version: "1.0"
+      }), {
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      });
+    } catch (error) {
+      console.error(`处理请求出错: ${error.message}`);
+      
+      // 返回错误响应
+      return new Response(JSON.stringify({
+        error: '内部服务器错误',
+        message: error.message
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      });
+    }
   }
-} 
+}; 

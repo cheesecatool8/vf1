@@ -5,13 +5,13 @@ import VideoPlayer from './components/VideoPlayer';
 import FrameGallery from './components/FrameGallery';
 import Footer from './components/Footer';
 
-// 使用环境变量或默认值
-const API_URL = process.env.REACT_APP_API_URL || 'https://cheesecatool-backend.onrender.com';
+// 使用环境变量或默认值 - 使用React正确的环境变量格式
+const API_URL = process.env.REACT_APP_API_URL || 'https://api-worker.imluluj8-7a3.workers.dev';
 const STORAGE_URL = process.env.REACT_APP_STORAGE_URL || 'https://storage-worker.imluluj8-7a3.workers.dev';
 
-// 增加调试日志
+// 调试日志 - 使用正确的环境变量格式
 console.log('环境变量:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
   API_URL,
   STORAGE_URL
 });
@@ -62,7 +62,7 @@ function App() {
         formData.append(key, options[key]);
       });
       
-      // 修改API请求路径
+      // 修改API请求路径为正确的端点
       const apiUrl = `${API_URL}/api/extract-frames`;
       console.log('发送请求到:', apiUrl);
       
@@ -70,9 +70,6 @@ function App() {
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
-        headers: {
-          'Accept': 'application/json',
-        }
       });
       
       if (!response.ok) {
