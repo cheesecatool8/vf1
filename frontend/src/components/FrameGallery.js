@@ -3,29 +3,49 @@ import React, { useState } from 'react';
 function FrameGallery({ frames }) {
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [lightboxImage, setLightboxImage] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [selectedFrames, setSelectedFrames] = useState([]);
 
   const downloadFrame = (frame) => {
-    const link = document.createElement('a');
-    link.href = frame.url;
-    link.download = `frame_${frame.timestamp || frame.index}.${frame.format || 'jpg'}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // 始终在新窗口打开下载链接
+    window.open(frame.url, '_blank');
   };
 
   const downloadAllFrames = () => {
     // 使用JSZip库可以在前端实现多文件打包下载
-    // 这里简化处理，逐个下载
-    frames.forEach((frame, index) => {
-      setTimeout(() => {
-        downloadFrame(frame);
-      }, index * 500); // 每500毫秒下载一个，避免浏览器限制
+    // 这里简化处理，逐个在新窗口打开下载链接
+    frames.forEach((frame) => {
+      window.open(frame.url, '_blank');
+    });
+  };
+
+  const downloadSelectedFrames = () => {
+    if (selectedFrames.length === 0) {
+      alert('请先选择要下载的帧');
+      return;
+    }
+    
+    // 为每个选中的帧打开下载链接
+    selectedFrames.forEach((frameIndex) => {
+      window.open(frames[frameIndex].url, '_blank');
+    });
+  };
+
+  // 切换选择框状态
+  const toggleFrameSelection = (index) => {
+    setSelectedFrames(prev => {
+      if (prev.includes(index)) {
+        return prev.filter(i => i !== index);
+      } else {
+        return [...prev, index];
+      }
     });
   };
 
   // 打开Lightbox
-  const openLightbox = (frame) => {
+  const openLightbox = (frame, index) => {
     setLightboxImage(frame);
+    setLightboxIndex(index);
     // 防止滚动
     document.body.style.overflow = 'hidden';
   };
@@ -37,11 +57,34 @@ function FrameGallery({ frames }) {
     document.body.style.overflow = '';
   };
 
+  // 查看下一张图片
+  const viewNextImage = (e) => {
+    e.stopPropagation();
+    const nextIndex = (lightboxIndex + 1) % frames.length;
+    setLightboxIndex(nextIndex);
+    setLightboxImage(frames[nextIndex]);
+  };
+
+  // 查看上一张图片
+  const viewPrevImage = (e) => {
+    e.stopPropagation();
+    const prevIndex = (lightboxIndex - 1 + frames.length) % frames.length;
+    setLightboxIndex(prevIndex);
+    setLightboxImage(frames[prevIndex]);
+  };
+
   return (
     <div>
       <div className="actions">
         <div>
           <span className="frames-count">共 {frames.length} 帧</span>
+          <button
+            onClick={downloadSelectedFrames}
+            className="btn btn-download selected-download-btn"
+            style={{ display: selectedFrames.length > 0 ? 'inline-block' : 'none' }}
+          >
+            下载选中视频帧 ({selectedFrames.length})
+          </button>
         </div>
         
         <div className="view-controls">
@@ -71,28 +114,31 @@ function FrameGallery({ frames }) {
           {frames.map((frame, index) => (
             <div key={index} className="frame-card">
               <div className="frame-image-container">
+                <div className="frame-selection">
+                  <input
+                    type="checkbox"
+                    checked={selectedFrames.includes(index)}
+                    onChange={() => toggleFrameSelection(index)}
+                    className="frame-checkbox"
+                  />
+                </div>
                 <img
                   src={frame.url}
                   alt={`Frame ${index}`}
                   className="frame-image full-image"
-                  onClick={() => openLightbox(frame)}
+                  onClick={() => openLightbox(frame, index)}
                   title="点击查看大图"
                 />
               </div>
               <div className="frame-info">
                 <p className="frame-number">帧 {index + 1}</p>
                 <p className="frame-timestamp">时间戳: {frame.timestamp || '未知'}</p>
-                <a
-                  href={frame.url}
-                  download={`frame_${frame.timestamp || index}.${frame.format || 'jpg'}`}
+                <button
+                  onClick={() => downloadFrame(frame)}
                   className="download-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    downloadFrame(frame);
-                  }}
                 >
                   下载
-                </a>
+                </button>
               </div>
             </div>
           ))}
@@ -102,6 +148,7 @@ function FrameGallery({ frames }) {
           <table className="frames-table">
             <thead>
               <tr>
+                <th>选择</th>
                 <th>预览</th>
                 <th>帧</th>
                 <th>时间戳</th>
@@ -112,12 +159,19 @@ function FrameGallery({ frames }) {
             <tbody>
               {frames.map((frame, index) => (
                 <tr key={index}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedFrames.includes(index)}
+                      onChange={() => toggleFrameSelection(index)}
+                    />
+                  </td>
                   <td className="thumbnail-cell">
                     <img
                       src={frame.url}
                       alt={`Frame ${index}`}
                       className="thumbnail full-image"
-                      onClick={() => openLightbox(frame)}
+                      onClick={() => openLightbox(frame, index)}
                       title="点击查看大图"
                     />
                   </td>
@@ -144,11 +198,21 @@ function FrameGallery({ frames }) {
         <div className="lightbox-overlay" onClick={closeLightbox}>
           <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
             <button className="lightbox-close" onClick={closeLightbox}>×</button>
+            
+            <button className="lightbox-nav lightbox-prev" onClick={viewPrevImage} style={{ display: 'block' }}>
+              &#10094;
+            </button>
+            
             <img 
               src={lightboxImage.url} 
               alt="放大查看" 
               className="lightbox-image" 
             />
+            
+            <button className="lightbox-nav lightbox-next" onClick={viewNextImage} style={{ display: 'block' }}>
+              &#10095;
+            </button>
+            
             <div className="lightbox-footer">
               <button 
                 className="lightbox-download-btn" 
