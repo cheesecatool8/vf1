@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
 import UploadForm from './components/UploadForm';
-import VideoPlayer from './components/VideoPlayer';
 import FrameGallery from './components/FrameGallery';
 import Footer from './components/Footer';
 
