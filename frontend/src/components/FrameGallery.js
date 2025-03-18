@@ -1,10 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 function FrameGallery({ frames }) {
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedFrames, setSelectedFrames] = useState([]);
+
+  // 查看下一张图片 - 使用useCallback包装，避免无限循环
+  const viewNextImage = useCallback((e) => {
+    if (e) e.stopPropagation();
+    const nextIndex = (lightboxIndex + 1) % frames.length;
+    setLightboxIndex(nextIndex);
+    setLightboxImage(frames[nextIndex]);
+  }, [lightboxIndex, frames]);
+
+  // 查看上一张图片 - 使用useCallback包装，避免无限循环
+  const viewPrevImage = useCallback((e) => {
+    if (e) e.stopPropagation();
+    const prevIndex = (lightboxIndex - 1 + frames.length) % frames.length;
+    setLightboxIndex(prevIndex);
+    setLightboxImage(frames[prevIndex]);
+  }, [lightboxIndex, frames]);
+
+  // 关闭Lightbox
+  const closeLightbox = () => {
+    setLightboxImage(null);
+    // 恢复滚动
+    document.body.style.overflow = '';
+  };
 
   // 用于键盘导航的事件处理
   useEffect(() => {
@@ -24,7 +47,7 @@ function FrameGallery({ frames }) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [lightboxImage, lightboxIndex]);
+  }, [lightboxImage, lightboxIndex, viewNextImage, viewPrevImage]);
 
   const downloadFrame = (frame) => {
     // 始终在新窗口打开下载链接
@@ -68,29 +91,6 @@ function FrameGallery({ frames }) {
     setLightboxIndex(index);
     // 防止滚动
     document.body.style.overflow = 'hidden';
-  };
-
-  // 关闭Lightbox
-  const closeLightbox = () => {
-    setLightboxImage(null);
-    // 恢复滚动
-    document.body.style.overflow = '';
-  };
-
-  // 查看下一张图片
-  const viewNextImage = (e) => {
-    if (e) e.stopPropagation();
-    const nextIndex = (lightboxIndex + 1) % frames.length;
-    setLightboxIndex(nextIndex);
-    setLightboxImage(frames[nextIndex]);
-  };
-
-  // 查看上一张图片
-  const viewPrevImage = (e) => {
-    if (e) e.stopPropagation();
-    const prevIndex = (lightboxIndex - 1 + frames.length) % frames.length;
-    setLightboxIndex(prevIndex);
-    setLightboxImage(frames[prevIndex]);
   };
 
   return (
