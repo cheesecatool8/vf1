@@ -21,6 +21,7 @@ export default {
     const path = url.pathname;
     
     console.log(`处理请求: ${request.method} ${path}`);
+    console.log(`请求头: ${JSON.stringify([...request.headers])}`);
 
     try {
       // 所有API请求转发到Render.com后端
@@ -41,9 +42,11 @@ export default {
         });
 
         // 发送到后端
+        console.log(`开始发送请求到后端...`);
         const backendResponse = await fetch(backendRequest);
         
         console.log(`后端响应状态: ${backendResponse.status}`);
+        console.log(`后端响应头: ${JSON.stringify([...backendResponse.headers])}`);
 
         // 读取响应体
         const responseBody = await backendResponse.arrayBuffer();
@@ -73,11 +76,13 @@ export default {
       });
     } catch (error) {
       console.error(`处理请求出错: ${error.message}`);
+      console.error(`错误详情: ${error.stack || '无堆栈'}`);
       
       // 返回错误响应
       return new Response(JSON.stringify({
         error: '内部服务器错误',
-        message: error.message
+        message: error.message,
+        stack: error.stack
       }), {
         status: 500,
         headers: {

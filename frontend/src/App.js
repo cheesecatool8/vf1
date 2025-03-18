@@ -45,6 +45,8 @@ function App() {
     setError('');
     
     try {
+      console.log('提取选项:', options);
+      
       const formData = new FormData();
       
       if (videoFile) {
@@ -60,6 +62,7 @@ function App() {
       // 添加提取选项
       Object.keys(options).forEach(key => {
         formData.append(key, options[key]);
+        console.log(`参数 ${key}:`, options[key], '类型:', typeof options[key]);
       });
       
       // 修改API请求路径为正确的端点
@@ -71,6 +74,8 @@ function App() {
         method: 'POST',
         body: formData,
       });
+      
+      console.log('服务器响应状态:', response.status);
       
       if (!response.ok) {
         let errorMessage;
@@ -84,13 +89,16 @@ function App() {
       }
       
       const data = await response.json();
+      console.log('服务器响应数据:', data);
+      
       if (!data.frames || !Array.isArray(data.frames)) {
         throw new Error('服务器返回数据格式错误');
       }
       setFrames(data.frames);
     } catch (err) {
       console.error('提取帧时出错:', err);
-      setError(err.message || '网络请求失败，请检查网络连接');
+      // 显示更详细的错误信息
+      setError(`处理错误: ${err.message} (API URL: ${API_URL})`);
     } finally {
       setLoading(false);
     }

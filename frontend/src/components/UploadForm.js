@@ -5,7 +5,7 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
   const [uploadMethod, setUploadMethod] = useState('file');
   const [extractionOptions, setExtractionOptions] = useState({
     fps: 1,
-    quality: 'high',
+    quality: 90,
     format: 'jpg',
     startTime: '',
     endTime: '',
@@ -32,10 +32,33 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
 
   const handleOptionChange = (e) => {
     const { name, value } = e.target;
-    setExtractionOptions({
-      ...extractionOptions,
-      [name]: value,
-    });
+    if (name === 'quality') {
+      let qualityValue = 90;
+      
+      switch(value) {
+        case 'low':
+          qualityValue = 60;
+          break;
+        case 'medium':
+          qualityValue = 80;
+          break;
+        case 'high':
+          qualityValue = 95;
+          break;
+        default:
+          qualityValue = parseInt(value) || 90;
+      }
+      
+      setExtractionOptions({
+        ...extractionOptions,
+        [name]: qualityValue,
+      });
+    } else {
+      setExtractionOptions({
+        ...extractionOptions,
+        [name]: value,
+      });
+    }
   };
 
   return (
@@ -135,7 +158,10 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
               <select
                 id="quality"
                 name="quality"
-                value={extractionOptions.quality}
+                value={
+                  extractionOptions.quality <= 60 ? 'low' :
+                  extractionOptions.quality <= 80 ? 'medium' : 'high'
+                }
                 onChange={handleOptionChange}
               >
                 <option value="low">低 (体积小)</option>
