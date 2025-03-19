@@ -46,32 +46,51 @@ function App() {
     try {
       console.log('提取选项:', options);
       
-      const formData = new FormData();
+      let requestData = {
+        fps: parseFloat(options.fps) || 1,
+        quality: parseInt(options.quality) || 90,
+        format: options.format || 'jpg',
+        startTime: options.startTime ? parseFloat(options.startTime) : null,
+        endTime: options.endTime ? parseFloat(options.endTime) : null
+      };
       
       if (videoFile) {
-        formData.append('video', videoFile);
+        // 如果是文件上传，先上传文件
+        const uploadFormData = new FormData();
+        uploadFormData.append('video', videoFile);
         console.log('上传文件:', videoFile.name, videoFile.size);
+        
+        const uploadResponse = await fetch(`${API_URL}/api/upload-video`, {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error(`上传视频失败: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        requestData.videoPath = uploadResult.videoPath || uploadResult.filename || videoFile.name;
       } else if (videoUrl) {
-        formData.append('videoUrl', videoUrl);
-        console.log('上传URL:', videoUrl);
+        requestData.videoUrl = videoUrl;
+        console.log('使用视频URL:', videoUrl);
       } else {
         throw new Error('请先上传视频或提供视频链接');
       }
       
-      // 添加提取选项
-      Object.keys(options).forEach(key => {
-        formData.append(key, options[key]);
-        console.log(`参数 ${key}:`, options[key], '类型:', typeof options[key]);
-      });
+      console.log('发送JSON请求数据:', requestData);
       
       // 修改API请求路径为正确的端点
       const apiUrl = `${API_URL}/api/extract-frames`;
       console.log('发送请求到:', apiUrl);
       
-      // 发送到后端API
+      // 发送到后端API，使用JSON格式
       const response = await fetch(apiUrl, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
       });
       
       console.log('服务器响应状态:', response.status);
@@ -97,7 +116,7 @@ function App() {
     } catch (err) {
       console.error('提取帧时出错:', err);
       // 显示更详细的错误信息
-      setError(`处理错误: ${err.message} (API URL: ${API_URL})`);
+      setError(`处理错误: ${err.message}`);
     } finally {
       setLoading(false);
     }

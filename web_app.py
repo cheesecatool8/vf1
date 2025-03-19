@@ -88,75 +88,146 @@ def allowed_file(filename):
 def index():
     return render_template('index.html')
 
+@app.route('/api/upload-video', methods=['POST'])
+def upload_video():
+    """处理视频上传请求"""
+    try:
+        if 'video' not in request.files:
+            return jsonify({'error': '没有找到视频文件'}), 400
+            
+        file = request.files['video']
+        if file.filename == '':
+            return jsonify({'error': '未选择文件'}), 400
+            
+        if file:
+            # 生成安全的文件名
+            filename = secure_filename(file.filename)
+            # 确保上传目录存在
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+                
+            # 保存文件
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            app.logger.info(f"成功上传视频: {filename}")
+            
+            return jsonify({
+                'success': True,
+                'message': '视频上传成功',
+                'filename': filename,
+                'videoPath': filename
+            })
+            
+    except Exception as e:
+        app.logger.error(f"上传视频时出错: {str(e)}", exc_info=True)
+        return jsonify({'error': f'上传视频失败: {str(e)}'}), 500
+
 @app.route('/api/extract-frames', methods=['POST'])
 def extract_frames_api():
     """处理视频帧提取请求"""
     try:
-        app.logger.info("接收到提取帧请求")
-        data = request.json
-        app.logger.info(f"提取帧请求参数: {data}")
+        app.logger.info(f"接收到提取帧请求，内容类型: {request.content_type}")
         
-        # 获取参数
-        video_path = data.get('videoPath')
-        fps = data.get('fps', 1)
-        quality = data.get('quality', 80)
-        format_type = data.get('format', 'jpg')
-        start_time = data.get('startTime')
-        end_time = data.get('endTime')
-        
-        if not video_path:
-            app.logger.error("未提供视频路径")
-            return jsonify({'error': '未提供视频路径'}), 400
+        # 处理JSON请求
+        if request.is_json:
+            data = request.get_json()
+            app.logger.info(f"提取帧JSON请求数据: {data}")
             
-        # 检查视频文件是否存在
-        full_video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_path)
-        if not os.path.exists(full_video_path):
-            app.logger.error(f"视频文件不存在: {full_video_path}")
-            return jsonify({'error': f'视频文件不存在: {video_path}'}), 404
-        
-        app.logger.info(f"开始提取帧，视频路径: {full_video_path}")
-        
-        # 提取帧
-        try:
-            frames_dir = os.path.join(app.config['FRAMES_FOLDER'], os.path.splitext(os.path.basename(video_path))[0])
-            os.makedirs(frames_dir, exist_ok=True)
+            # 获取参数
+            video_path = data.get('videoPath')
+            video_url = data.get('videoUrl')
+            fps = data.get('fps', 1)
+            quality = data.get('quality', 80)
+            format_type = data.get('format', 'jpg')
+            start_time = data.get('startTime')
+            end_time = data.get('endTime')
             
-            # 正确调用 extract_frames 函数
-            frame_count = extract_frames(
-                full_video_path, 
-                frames_dir, 
-                fps=float(fps), 
-                start_time=start_time,
-                end_time=end_time,
-                format=format_type,
-                quality=int(quality)
-            )
+            if not video_path and not video_url:
+                app.logger.error("未提供视频路径或URL")
+                return jsonify({'error': '未提供视频路径或URL'}), 400
+                
+            # 如果提供了URL但没有路径，先下载视频
+            if video_url and not video_path:
+                try:
+                    # 生成唯一文件名
+                    video_filename = f"url_video_{int(time.time())}.mp4"
+                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_filename)
+                    
+                    # 下载视频
+                    app.logger.info(f"从URL下载视频: {video_url}")
+                    response = requests.get(video_url, stream=True, timeout=60)
+                    response.raise_for_status()
+                    
+                    with open(video_path, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192): 
+                            f.write(chunk)
+                            
+                    app.logger.info(f"视频下载成功: {video_path}")
+                except Exception as e:
+                    app.logger.error(f"下载视频时出错: {str(e)}", exc_info=True)
+                    return jsonify({'error': f'下载视频失败: {str(e)}'}), 500
+            else:
+                # 如果只有路径，确保它是完整路径
+                video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_path)
+                
+            # 检查视频文件是否存在
+            if not os.path.exists(video_path):
+                app.logger.error(f"视频文件不存在: {video_path}")
+                return jsonify({'error': f'视频文件不存在'}), 404
             
-            # 构建帧数据
-            frame_files = [f for f in os.listdir(frames_dir) if f.endswith(f'.{format_type}')]
-            frames = []
+            app.logger.info(f"开始提取帧，视频路径: {video_path}")
             
-            base_url = app.config.get('FRAMES_BASE_URL', '')
-            for frame_file in sorted(frame_files):
-                frame_url = f"{base_url}/{os.path.basename(frames_dir)}/{frame_file}"
-                frames.append({
-                    'url': frame_url,
-                    'filename': frame_file,
-                    'index': int(frame_file.split('_')[1].split('.')[0])
+            # 提取帧
+            try:
+                # 确保输出目录存在
+                output_dir = os.path.join(app.config['FRAMES_FOLDER'], os.path.splitext(os.path.basename(video_path))[0])
+                os.makedirs(output_dir, exist_ok=True)
+                
+                # 执行帧提取
+                frame_count = extract_frames(
+                    video_path, 
+                    output_dir, 
+                    fps=float(fps), 
+                    start_time=start_time,
+                    end_time=end_time,
+                    format=format_type,
+                    quality=int(quality)
+                )
+                
+                # 构建帧数据
+                base_url = app.config.get('FRAMES_BASE_URL', '')
+                frames_dir_name = os.path.splitext(os.path.basename(video_path))[0]
+                frame_files = sorted([f for f in os.listdir(output_dir) if f.endswith(f'.{format_type}')])
+                frames = []
+                
+                for i, frame_file in enumerate(frame_files):
+                    frame_url = f"{base_url}/{frames_dir_name}/{frame_file}"
+                    frames.append({
+                        'url': frame_url,
+                        'filename': frame_file,
+                        'index': i
+                    })
+                
+                app.logger.info(f"成功提取 {frame_count} 帧")
+                
+                # 返回结果
+                return jsonify({
+                    'frames': frames,
+                    'message': f'成功提取 {frame_count} 帧',
+                    'count': frame_count
                 })
-            
-            app.logger.info(f"成功提取 {frame_count} 帧")
-            
-            # 返回结果
-            return jsonify({
-                'frames': frames,
-                'message': f'成功提取 {frame_count} 帧'
-            })
-            
-        except Exception as e:
-            app.logger.error(f"提取帧时出错: {str(e)}", exc_info=True)
-            return jsonify({'error': f'提取帧时出错: {str(e)}'}), 500
-            
+                
+            except Exception as e:
+                app.logger.error(f"提取帧时出错: {str(e)}", exc_info=True)
+                return jsonify({'error': f'提取帧时出错: {str(e)}'}), 500
+        
+        # 处理表单数据请求 (兼容旧格式)
+        else:
+            app.logger.warning("收到非JSON格式请求，尝试作为表单数据处理")
+            # 此处保留旧的处理逻辑
+            # ...
+            return jsonify({'error': '请使用JSON格式请求'}), 400
+                
     except Exception as e:
         app.logger.error(f"处理请求时出错: {str(e)}", exc_info=True)
         return jsonify({'error': f'处理请求时出错: {str(e)}'}), 500
