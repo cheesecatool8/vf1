@@ -593,10 +593,6 @@
                     const frameCard = document.createElement('div');
                     frameCard.className = 'frame-card';
                     
-                    // 创建复选框包装器
-                    const checkboxWrapper = document.createElement('div');
-                    checkboxWrapper.className = 'frame-checkbox-wrapper';
-                    
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.className = 'frame-checkbox';
@@ -604,10 +600,10 @@
                     checkbox.dataset.url = frame.url;
                     checkbox.dataset.filename = `frame_${index}.${data.format}`;
                     
-                    checkboxWrapper.appendChild(checkbox);
-                    frameCard.appendChild(checkboxWrapper);
+                    const checkboxLabel = document.createElement('label');
+                    checkboxLabel.className = 'frame-checkbox-label';
+                    checkboxLabel.htmlFor = `frame-checkbox-${index}`;
                     
-                    // 创建图片容器
                     const imgContainer = document.createElement('div');
                     imgContainer.className = 'frame-image-container';
                     
@@ -618,7 +614,6 @@
                     img.onclick = function() { showImage(frame.url); };
                     
                     imgContainer.appendChild(img);
-                    frameCard.appendChild(imgContainer);
                     
                     const infoDiv = document.createElement('div');
                     infoDiv.className = 'frame-info';
@@ -635,14 +630,21 @@
                     
                     infoDiv.appendChild(frameNumber);
                     infoDiv.appendChild(downloadLink);
+                    
+                    frameCard.appendChild(checkbox);
+                    frameCard.appendChild(checkboxLabel);
+                    frameCard.appendChild(imgContainer);
                     frameCard.appendChild(infoDiv);
                     
                     framesContainer.appendChild(frameCard);
                 });
                 
                 downloadAllBtn.href = `/download_all/${data.folder_name}`;
+                
                 resultsSection.style.display = 'block';
+                
                 resultsSection.scrollIntoView({ behavior: 'smooth' });
+                
                 showMessage(`成功提取 ${data.count} 帧`, 'success');
             }
             
@@ -681,43 +683,19 @@
                     return;
                 }
                 
-                const frames = Array.from(selectedCheckboxes).map(checkbox => ({
-                    url: checkbox.dataset.url
-                }));
-                
-                // 显示加载提示
-                showMessage('正在准备下载文件...', 'success');
-                
-                // 发送请求到后端
-                fetch('/api/download-selected', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ frames })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('下载失败');
-                    }
-                    return response.blob();
-                })
-                .then(blob => {
-                    // 创建下载链接
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `frames-${Date.now()}.zip`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                    showMessage(`已开始下载 ${selectedCheckboxes.length} 个帧`, 'success');
-                })
-                .catch(error => {
-                    console.error('下载出错:', error);
-                    showMessage('下载出错，请重试', 'error');
+                selectedCheckboxes.forEach((checkbox, index) => {
+                    const link = document.createElement('a');
+                    link.href = checkbox.dataset.url;
+                    link.download = checkbox.dataset.filename;
+                    
+                    setTimeout(() => {
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }, index * 100);
                 });
+                
+                showMessage(`正在下载 ${selectedCheckboxes.length} 个帧`, 'success');
             });
             
             let currentImageIndex = 0;

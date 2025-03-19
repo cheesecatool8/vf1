@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
   const [url, setUrl] = useState('');
   const [uploadMethod, setUploadMethod] = useState('file');
+  const [filePreview, setFilePreview] = useState(null);
+  const [fileName, setFileName] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
   const [extractionOptions, setExtractionOptions] = useState({
     fps: 1,
     quality: 90,
@@ -11,10 +15,67 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
     endTime: '',
   });
 
+  // 拖放相关处理函数
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      handleFile(file);
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type.includes('video')) {
+      handleFile(file);
+    }
+  };
+
+  const handleFile = (file) => {
+    if (file && file.type.includes('video')) {
+      setFileName(file.name);
+      
+      // 为视频创建预览URL
+      const videoUrl = URL.createObjectURL(file);
+      setFilePreview(videoUrl);
+      
       onVideoUpload(file);
+      
+      // 自动跳转到提取选项区域
+      document.querySelector('.extraction-options').scrollIntoView({ 
+        behavior: 'smooth' 
+      });
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFilePreview(null);
+    setFileName('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -22,6 +83,10 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
     e.preventDefault();
     if (url.trim()) {
       onVideoUrl(url);
+      // 自动跳转到提取选项区域
+      document.querySelector('.extraction-options').scrollIntoView({ 
+        behavior: 'smooth' 
+      });
     }
   };
 
@@ -61,6 +126,20 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
     }
   };
 
+  // 计算预计提取的帧数
+  const calculateEstimatedFrames = () => {
+    const { fps, startTime, endTime } = extractionOptions;
+    if (fps === 'all') return '全部帧';
+    
+    const start = parseFloat(startTime) || 0;
+    const end = parseFloat(endTime) || 0;
+    
+    if (end > start) {
+      return `约 ${Math.ceil((end - start) * parseFloat(fps))} 帧`;
+    }
+    return `每秒 ${fps} 帧`;
+  };
+
   return (
     <div>
       <div className="form-group">
@@ -68,43 +147,78 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
           <button
             className={`tab-btn ${uploadMethod === 'file' ? 'active' : ''}`}
             onClick={() => setUploadMethod('file')}
+            type="button"
           >
             上传视频文件
           </button>
           <button
             className={`tab-btn ${uploadMethod === 'url' ? 'active' : ''}`}
             onClick={() => setUploadMethod('url')}
+            type="button"
           >
             使用视频URL
           </button>
         </div>
 
         {uploadMethod === 'file' ? (
-          <div className="upload-area">
-            <input
-              type="file"
-              accept="video/*"
-              onChange={handleFileChange}
-              className="hidden-input"
-              id="video-upload"
-            />
-            <label
-              htmlFor="video-upload"
-              className="upload-label"
-            >
-              <div className="upload-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 16V8M12 8L8 12M12 8L16 12" stroke="#bdc3c7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M3 15V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V15" stroke="#bdc3c7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+          <div 
+            className={`upload-area ${isDragging ? 'dragging' : ''} ${filePreview ? 'has-preview' : ''}`}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            {!filePreview ? (
+              <>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleFileChange}
+                  className="hidden-input"
+                  id="video-upload"
+                  ref={fileInputRef}
+                />
+                <label
+                  htmlFor="video-upload"
+                  className="upload-label"
+                >
+                  <div className="upload-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 16V8M12 8L8 12M12 8L16 12" stroke="#bdc3c7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M3 15V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V15" stroke="#bdc3c7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <p className="upload-text">
+                    点击选择视频文件或拖放到此处
+                  </p>
+                  <p className="upload-hint">
+                    支持的格式: MP4, AVI, MOV, WMV, FLV
+                  </p>
+                </label>
+              </>
+            ) : (
+              <div className="file-preview">
+                <div className="file-preview-header">
+                  <div className="file-info">
+                    <span className="file-name">{fileName}</span>
+                  </div>
+                  <button 
+                    className="remove-file-btn" 
+                    onClick={handleRemoveFile}
+                    type="button"
+                  >
+                    删除
+                  </button>
+                </div>
+                <div className="video-preview-container">
+                  <video 
+                    src={filePreview} 
+                    className="video-preview" 
+                    controls
+                  />
+                </div>
               </div>
-              <p className="upload-text">
-                点击选择视频文件或拖放到此处
-              </p>
-              <p className="upload-hint">
-                支持的格式: MP4, AVI, MOV, WMV, FLV
-              </p>
-            </label>
+            )}
           </div>
         ) : (
           <form onSubmit={handleUrlSubmit} className="url-form">
@@ -211,6 +325,10 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
                 step="0.1"
               />
             </div>
+          </div>
+
+          <div className="extraction-summary">
+            <p>预计提取: <strong>{calculateEstimatedFrames()}</strong></p>
           </div>
 
           <button

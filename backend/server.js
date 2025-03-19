@@ -203,9 +203,17 @@ async function extractFrames(videoPath, outputDir, options) {
           
           // 构建帧信息
           const frames = frameFiles.map((file, index) => {
+            // 获取帧的时间戳（秒）
+            let timestamp = null;
+            if (fps) {
+              timestamp = (startTime || 0) + (index / fps);
+              timestamp = parseFloat(timestamp.toFixed(2));
+            }
+            
             return {
               url: `/frames/${extractionId}/${file}`,
               index,
+              timestamp,
               format
             };
           });
