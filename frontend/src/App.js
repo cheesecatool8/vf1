@@ -133,19 +133,6 @@ function App() {
           </div>
         )}
         
-        <div className="preview-container">
-          <h2>预览视频</h2>
-          {videoUrl && (
-            <video
-              controls
-              src={videoUrl}
-              className="video-preview"
-              width="100%"
-              height="250"
-            />
-          )}
-        </div>
-        
         {loading && (
           <div className="loading" style={{display: 'block'}}>
             <div className="spinner"></div>
