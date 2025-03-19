@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>芝士猫视频帧万能提取器</title>
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="视频帧提取工具 - 无损提取视频帧" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .title-with-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .cat-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .top-nav {
+            display: flex;
+            align-items: center;
+            background-color: #2c3e50;
+            padding: 10px 20px;
+            margin: -20px -20px 20px -20px;
+            color: white;
+        }
+        .nav-logo {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+        }
+        .nav-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input[type="range"] {
+            height: 25px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .upload-area {
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #3498db;
+            background-color: #f8f9fa;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: #bdc3c7;
+            margin-bottom: 10px;
+        }
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            color: #fff;
+            background-color: #e74c3c;
+        }
+        .flash-message.success {
+            background-color: #2ecc71;
+        }
+        .param-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .quality-display {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        #results-section {
+            display: none;
+            margin-top: 40px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 30px;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .frames-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .frame-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .frame-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .frame-image-container {
+            width: 100%;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f7f7f7;
+            position: relative;
+            overflow: hidden;
+        }
+        .frame-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        .frame-info {
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .frame-number {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .download-link {
+            display: block;
+            text-align: center;
+            margin-top: 8px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .download-link:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 10px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            z-index: 1010;
+        }
+        
+        .frame-checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            z-index: 10;
+            cursor: pointer;
+        }
+        .frame-checkbox-label {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            z-index: 5;
+        }
+        .frame-checkbox:checked + .frame-checkbox-label {
+            background-color: #3498db;
+        }
+        .frame-checkbox:checked + .frame-checkbox-label:after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 3px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .select-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .btn-select-all {
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-select-all:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 50px;
+            background-color: rgba(0, 0, 0, 0.3);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 1010;
+        }
+        .nav-btn:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .prev-btn {
+            left: 30px;
+        }
+        .next-btn {
+            right: 30px;
+        }
+        
+        .image-counter {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 1010;
+        }
+    </style>
+  </head>
+  <body>
+    <noscript>您需要启用JavaScript才能运行此应用。</noscript>
+    
+    <div id="root"></div>
+    
+    <div id="static-app" style="display:none;">
+        <div class="top-nav">
+            <img src="/static/images/logo-white.png" alt="芝士猫" class="nav-logo">
+            <div class="nav-title">芝士猫视频工具</div>
+        </div>
+        
+        <div class="container">
+            <div class="title-with-icon">
+                <img src="/static/images/logo-color.png" alt="芝士猫" class="cat-icon">
+                <h1>芝士猫视频帧万能提取器</h1>
+            </div>
+            
+            <div id="message-area" class="flash-messages"></div>
+            
+            <form id="extract-form" enctype="multipart/form-data">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">📁</div>
+                    <h3>点击选择视频文件或拖放到此处</h3>
+                    <p>支持的格式: MP4, AVI, MOV, WMV, FLV, MKV</p>
+                    <input type="file" name="video" id="video-input" accept=".mp4,.avi,.mov,.mkv,.wmv,.flv" style="display: none;">
+                    <div id="file-name" style="margin-top: 10px; font-weight: bold;"></div>
+                </div>
+                
+                <div class="param-group">
+                    <div class="form-group">
+                        <label for="fps">帧率 (FPS)</label>
+                        <select name="fps" id="fps">
+                            <option value="0.5">0.5 (每2秒1帧)</option>
+                            <option value="1" selected>1 (每秒1帧)</option>
+                            <option value="2">2 (每秒2帧)</option>
+                            <option value="5">5 (每秒5帧)</option>
+                            <option value="10">10 (每秒10帧)</option>
+                            <option value="15">15 (每秒15帧)</option>
+                            <option value="30">30 (每秒30帧)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="format">图像格式</label>
+                        <select name="format" id="format">
+                            <option value="jpg" selected>JPG</option>
+                            <option value="png">PNG</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quality">图像质量 <span id="quality-value" class="quality-display">90</span></label>
+                    <input type="range" name="quality" id="quality" min="10" max="100" value="90">
+                </div>
+                
+                <div class="param-group">
+                    <div class="form-group">
+                        <label for="start_time">开始时间 (秒, 可选)</label>
+                        <input type="number" name="start_time" id="start_time" min="0" step="0.1" placeholder="从视频开始">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end_time">结束时间 (秒, 可选)</label>
+                        <input type="number" name="end_time" id="end_time" min="0" step="0.1" placeholder="到视频结束">
+                    </div>
+                </div>
+                
+                <button type="submit" id="extract-btn">提取视频帧</button>
+            </form>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>正在处理视频，请稍候...</p>
+            </div>
+            
+            <div id="results-section">
+                <h2>提取结果</h2>
+                
+                <div class="actions">
+                    <button id="back-to-form" class="btn">返回上传</button>
+                    <button id="download-selected-btn" class="btn">下载所有选中帧</button>
+                </div>
+                
+                <div class="select-actions">
+                    <button id="select-all-btn" class="btn-select-all">全选</button>
+                    <button id="deselect-all-btn" class="btn-select-all">取消全选</button>
+                </div>
+                
+                <div id="frames-container" class="frames-container">
+                    <!-- 帧图像将在这里动态添加 -->
+                </div>
+            </div>
+            
+            <footer>
+                <p>芝士猫视频帧万能提取工具 &copy; 2025，欢迎建议与反馈：imluluj8@outlook.com</p>
+            </footer>
+        </div>
+        
+        <div class="image-modal" id="image-modal">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="nav-btn prev-btn" id="prev-btn">&lt;</div>
+            <div class="nav-btn next-btn" id="next-btn">&gt;</div>
+            <img class="modal-content" id="modal-image">
+            <div class="image-counter" id="image-counter">1/10</div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const rootElement = document.getElementById('root');
+                if (rootElement && rootElement.children.length === 0) {
+                    document.getElementById('static-app').style.display = 'block';
+                    initStaticApp();
+                }
+            }, 500);
+        });
+        
+        function initStaticApp() {
+            const uploadArea = document.getElementById('upload-area');
+            const videoInput = document.getElementById('video-input');
+            const fileName = document.getElementById('file-name');
+            
+            uploadArea.addEventListener('click', () => {
+                videoInput.click();
+            });
+            
+            videoInput.addEventListener('change', () => {
+                if (videoInput.files.length > 0) {
+                    fileName.textContent = '已选择: ' + videoInput.files[0].name;
+                    uploadArea.style.borderColor = '#2ecc71';
+                }
+            });
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#3498db';
+                uploadArea.style.backgroundColor = '#ecf0f1';
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '#bdc3c7';
+                uploadArea.style.backgroundColor = '';
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                
+                if (e.dataTransfer.files.length > 0) {
+                    videoInput.files = e.dataTransfer.files;
+                    if (videoInput.files[0].type.startsWith('video/')) {
+                        fileName.textContent = '已选择: ' + videoInput.files[0].name;
+                        uploadArea.style.borderColor = '#2ecc71';
+                    } else {
+                        alert('请上传视频文件');
+                        uploadArea.style.borderColor = '#e74c3c';
+                    }
+                }
+                
+                uploadArea.style.backgroundColor = '';
+            });
+            
+            const qualityInput = document.getElementById('quality');
+            const qualityValue = document.getElementById('quality-value');
+            
+            qualityInput.addEventListener('input', () => {
+                qualityValue.textContent = qualityInput.value;
+            });
+            
+            const extractForm = document.getElementById('extract-form');
+            const loadingElement = document.getElementById('loading');
+            const resultsSection = document.getElementById('results-section');
+            const framesContainer = document.getElementById('frames-container');
+            const messageArea = document.getElementById('message-area');
+            const backToFormBtn = document.getElementById('back-to-form');
+            const downloadAllBtn = document.getElementById('download-selected-btn');
+            
+            extractForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!videoInput.files || videoInput.files.length === 0) {
+                    showMessage('请选择视频文件', 'error');
+                    return;
+                }
+                
+                loadingElement.style.display = 'block';
+                messageArea.innerHTML = '';
+                
+                const formData = new FormData(extractForm);
+                
+                fetch('/upload_ajax', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络错误');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loadingElement.style.display = 'none';
+                    
+                    if (data.error) {
+                        showMessage(data.error, 'error');
+                        return;
+                    }
+                    
+                    showResults(data);
+                })
+                .catch(error => {
+                    loadingElement.style.display = 'none';
+                    showMessage('处理请求时出错: ' + error.message, 'error');
+                });
+            });
+            
+            function showResults(data) {
+                framesContainer.innerHTML = '';
+                
+                data.frames.forEach((frame, index) => {
+                    const frameCard = document.createElement('div');
+                    frameCard.className = 'frame-card';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'frame-checkbox';
+                    checkbox.id = `frame-checkbox-${index}`;
+                    checkbox.dataset.url = frame.url;
+                    checkbox.dataset.filename = `frame_${index}.${data.format}`;
+                    
+                    const checkboxLabel = document.createElement('label');
+                    checkboxLabel.className = 'frame-checkbox-label';
+                    checkboxLabel.htmlFor = `frame-checkbox-${index}`;
+                    
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'frame-image-container';
+                    
+                    const img = document.createElement('img');
+                    img.src = frame.url;
+                    img.alt = `Frame ${index + 1}`;
+                    img.className = 'frame-image';
+                    img.onclick = function() { showImage(frame.url); };
+                    
+                    imgContainer.appendChild(img);
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'frame-info';
+                    
+                    const frameNumber = document.createElement('p');
+                    frameNumber.className = 'frame-number';
+                    frameNumber.textContent = `帧 ${index + 1}`;
+                    
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = frame.url;
+                    downloadLink.className = 'download-link';
+                    downloadLink.textContent = '下载';
+                    downloadLink.download = `frame_${index}.${data.format}`;
+                    
+                    infoDiv.appendChild(frameNumber);
+                    infoDiv.appendChild(downloadLink);
+                    
+                    frameCard.appendChild(checkbox);
+                    frameCard.appendChild(checkboxLabel);
+                    frameCard.appendChild(imgContainer);
+                    frameCard.appendChild(infoDiv);
+                    
+                    framesContainer.appendChild(frameCard);
+                });
+                
+                downloadAllBtn.href = `/download_all/${data.folder_name}`;
+                
+                resultsSection.style.display = 'block';
+                
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+                
+                showMessage(`成功提取 ${data.count} 帧`, 'success');
+            }
+            
+            function showMessage(message, type = 'error') {
+                messageArea.innerHTML = `<li class="flash-message ${type === 'success' ? 'success' : ''}">${message}</li>`;
+            }
+            
+            backToFormBtn.addEventListener('click', function() {
+                resultsSection.style.display = 'none';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            const downloadSelectedBtn = document.getElementById('download-selected-btn');
+            const selectAllBtn = document.getElementById('select-all-btn');
+            const deselectAllBtn = document.getElementById('deselect-all-btn');
+            
+            selectAllBtn.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('.frame-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+            });
+            
+            deselectAllBtn.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('.frame-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            });
+            
+            downloadSelectedBtn.addEventListener('click', function() {
+                const selectedCheckboxes = document.querySelectorAll('.frame-checkbox:checked');
+                
+                if (selectedCheckboxes.length === 0) {
+                    alert('请至少选择一个帧进行下载');
+                    return;
+                }
+                
+                selectedCheckboxes.forEach((checkbox, index) => {
+                    const link = document.createElement('a');
+                    link.href = checkbox.dataset.url;
+                    link.download = checkbox.dataset.filename;
+                    
+                    setTimeout(() => {
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }, index * 100);
+                });
+                
+                showMessage(`正在下载 ${selectedCheckboxes.length} 个帧`, 'success');
+            });
+            
+            let currentImageIndex = 0;
+            let allImages = [];
+            
+            window.showImage = function(src) {
+                const modal = document.getElementById('image-modal');
+                const modalImg = document.getElementById('modal-image');
+                const counter = document.getElementById('image-counter');
+                
+                allImages = Array.from(document.querySelectorAll('.frame-image')).map(img => img.src);
+                
+                currentImageIndex = allImages.indexOf(src);
+                
+                modal.style.display = 'flex';
+                modalImg.src = src;
+                
+                updateCounter();
+                
+                document.addEventListener('keydown', handleKeyNavigation);
+            }
+            
+            function updateCounter() {
+                const counter = document.getElementById('image-counter');
+                counter.textContent = `${currentImageIndex + 1}/${allImages.length}`;
+            }
+            
+            function showPrevImage() {
+                if (allImages.length === 0) return;
+                
+                currentImageIndex = (currentImageIndex - 1 + allImages.length) % allImages.length;
+                document.getElementById('modal-image').src = allImages[currentImageIndex];
+                updateCounter();
+            }
+            
+            function showNextImage() {
+                if (allImages.length === 0) return;
+                
+                currentImageIndex = (currentImageIndex + 1) % allImages.length;
+                document.getElementById('modal-image').src = allImages[currentImageIndex];
+                updateCounter();
+            }
+            
+            function handleKeyNavigation(event) {
+                if (event.key === 'ArrowLeft') {
+                    showPrevImage();
+                } else if (event.key === 'ArrowRight') {
+                    showNextImage();
+                } else if (event.key === 'Escape') {
+                    closeModal();
+                }
+            }
+            
+            window.closeModal = function() {
+                document.getElementById('image-modal').style.display = 'none';
+                document.removeEventListener('keydown', handleKeyNavigation);
+            }
+            
+            window.onclick = function(event) {
+                const modal = document.getElementById('image-modal');
+                if (event.target == modal) {
+                    closeModal();
+                }
+            }
+            
+            document.getElementById('prev-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                showPrevImage();
+            });
+            
+            document.getElementById('next-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                showNextImage();
+            });
+        }
+    </script>
+  </body>
+</html> 

@@ -13,6 +13,49 @@ function FrameGallery({ frames }) {
   const [isPreloading, setIsPreloading] = useState(false);
   const [preloadProgress, setPreloadProgress] = useState(0);
 
+  // 图片预加载函数
+  const preloadImages = useCallback(async () => {
+    if (frames.length === 0) return;
+    
+    setIsPreloading(true);
+    const cache = {};
+    
+    try {
+      for (let i = 0; i < frames.length; i++) {
+        const frame = frames[i];
+        // 如果图片已经在缓存中，则跳过
+        if (imageCache[frame.url]) {
+          cache[frame.url] = imageCache[frame.url];
+          continue;
+        }
+        
+        // 创建图片对象并预加载
+        const img = new Image();
+        const promise = new Promise((resolve, reject) => {
+          img.onload = () => resolve(frame.url);
+          img.onerror = () => reject(new Error(`Failed to load image: ${frame.url}`));
+          img.src = frame.url;
+        });
+        
+        try {
+          await promise;
+          cache[frame.url] = true;
+        } catch (error) {
+          console.error(error);
+        }
+        
+        // 更新进度
+        setPreloadProgress(Math.round(((i + 1) / frames.length) * 100));
+      }
+      
+      setImageCache(cache);
+    } catch (error) {
+      console.error('预加载图片出错:', error);
+    } finally {
+      setIsPreloading(false);
+    }
+  }, [frames, imageCache]);
+
   // 查看下一张图片 - 使用useCallback包装，避免无限循环
   const viewNextImage = useCallback((e) => {
     if (e) e.stopPropagation();
@@ -28,6 +71,13 @@ function FrameGallery({ frames }) {
     setLightboxIndex(prevIndex);
     setLightboxImage(frames[prevIndex]);
   }, [lightboxIndex, frames]);
+
+  // 预加载所有图片以提高性能
+  useEffect(() => {
+    if (frames.length > 0 && Object.keys(imageCache).length === 0) {
+      preloadImages();
+    }
+  }, [frames, imageCache, preloadImages]);
 
   // 关闭Lightbox
   const closeLightbox = () => {
@@ -225,56 +275,6 @@ function FrameGallery({ frames }) {
     setLightboxIndex(index);
     // 防止滚动
     document.body.style.overflow = 'hidden';
-  };
-
-  // 预加载所有图片以提高性能
-  useEffect(() => {
-    if (frames.length > 0 && Object.keys(imageCache).length === 0) {
-      preloadImages();
-    }
-  }, [frames]);
-  
-  // 图片预加载函数
-  const preloadImages = async () => {
-    if (frames.length === 0) return;
-    
-    setIsPreloading(true);
-    const cache = {};
-    
-    try {
-      for (let i = 0; i < frames.length; i++) {
-        const frame = frames[i];
-        // 如果图片已经在缓存中，则跳过
-        if (imageCache[frame.url]) {
-          cache[frame.url] = imageCache[frame.url];
-          continue;
-        }
-        
-        // 创建图片对象并预加载
-        const img = new Image();
-        const promise = new Promise((resolve, reject) => {
-          img.onload = () => resolve(frame.url);
-          img.onerror = () => reject(new Error(`Failed to load image: ${frame.url}`));
-          img.src = frame.url;
-        });
-        
-        try {
-          await promise;
-          cache[frame.url] = true;
-        } catch (error) {
-          console.error(error);
-        }
-        
-        // 更新进度
-        setPreloadProgress(Math.round(((i + 1) / frames.length) * 100));
-      }
-      
-      setImageCache(cache);
-    } catch (error) {
-      console.error('预加载图片出错:', error);
-    } finally {
-      setIsPreloading(false);
-    }
   };
 
   return (

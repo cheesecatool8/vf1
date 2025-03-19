@@ -1,0 +1,15 @@
+{
+  "short_name": "视频帧提取",
+  "name": "芝士猫视频帧提取器",
+  "icons": [
+    {
+      "src": "images/cat-icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+} 
