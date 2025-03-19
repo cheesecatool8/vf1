@@ -15,16 +15,17 @@ function FrameGallery({ frames }) {
 
   // 处理代理URL，解决CORS问题
   const getProxyUrl = (originalUrl) => {
-    // 如果URL以http开头且包含y.cheesecatool.com，将其替换为正确的存储URL
+    // 检查URL是否来自storage.y.cheesecatool.com
     if (originalUrl.includes('storage.y.cheesecatool.com')) {
-      const storageUrl = process.env.REACT_APP_STORAGE_URL || 'https://storage-worker.imluluj8-7a3.workers.dev';
-      return originalUrl.replace('https://storage.y.cheesecatool.com', storageUrl);
+      // 使用API代理接口获取图片，避免404错误
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
+      return `${apiUrl}/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
     }
     
     // 检查URL是否来自Cloudflare R2存储
     if (originalUrl.includes('cloudflarestorage.com')) {
       // 使用代理接口
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://little-smoke-90a1.imluluj8-7a3.workers.dev';
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
       return `${apiUrl}/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
     }
     
