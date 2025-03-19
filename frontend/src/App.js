@@ -5,7 +5,7 @@ import FrameGallery from './components/FrameGallery';
 import Footer from './components/Footer';
 
 // 使用环境变量或默认值
-const API_URL = process.env.REACT_APP_API_URL || 'https://little-smoke-90a1.imluluj8-7a3.workers.dev';
+const API_URL = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
 const STORAGE_URL = process.env.REACT_APP_STORAGE_URL || 'https://storage.y.cheesecatool.com';
 
 // 调试日志 - 使用正确的环境变量格式

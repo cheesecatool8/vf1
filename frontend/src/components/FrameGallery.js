@@ -22,9 +22,9 @@ function FrameGallery({ frames }) {
     }
     
     // 检查URL是否来自Cloudflare R2存储
-    if (originalUrl.includes('cloudflarestorage.com')) {
+    if (originalUrl.includes('storage.y.cheesecatool.com')) {
       // 使用代理接口
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://little-smoke-90a1.imluluj8-7a3.workers.dev';
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
       return `${apiUrl}/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
     }
     
