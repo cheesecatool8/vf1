@@ -22,9 +22,10 @@ import threading
 import requests
 import tempfile
 import json
+from dateutil import parser
 
 # 配置日志
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -126,12 +127,12 @@ def upload_video():
 def extract_frames_api():
     """处理视频帧提取请求"""
     try:
-        app.logger.info(f"接收到提取帧请求，内容类型: {request.content_type}")
+        logger.info(f"接收到提取帧请求，内容类型: {request.content_type}")
         
         # 处理JSON请求
         if request.is_json:
             data = request.get_json()
-            app.logger.info(f"提取帧JSON请求数据: {data}")
+            logger.info(f"提取帧JSON请求数据: {data}")
             
             # 获取参数
             video_path = data.get('videoPath')
@@ -142,8 +143,10 @@ def extract_frames_api():
             start_time = data.get('startTime')
             end_time = data.get('endTime')
             
+            logger.info(f"解析的参数: video_path={video_path}, video_url={video_url}, fps={fps}, quality={quality}, format={format_type}, start_time={start_time}, end_time={end_time}")
+            
             if not video_path and not video_url:
-                app.logger.error("未提供视频路径或URL")
+                logger.error("未提供视频路径或URL")
                 return jsonify({'error': '未提供视频路径或URL'}), 400
                 
             # 如果提供了URL但没有路径，先下载视频
@@ -154,7 +157,7 @@ def extract_frames_api():
                     video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_filename)
                     
                     # 下载视频
-                    app.logger.info(f"从URL下载视频: {video_url}")
+                    logger.info(f"从URL下载视频: {video_url}")
                     response = requests.get(video_url, stream=True, timeout=60)
                     response.raise_for_status()
                     
@@ -162,26 +165,31 @@ def extract_frames_api():
                         for chunk in response.iter_content(chunk_size=8192): 
                             f.write(chunk)
                             
-                    app.logger.info(f"视频下载成功: {video_path}")
+                    logger.info(f"视频下载成功: {video_path}")
                 except Exception as e:
-                    app.logger.error(f"下载视频时出错: {str(e)}", exc_info=True)
+                    logger.error(f"下载视频时出错: {str(e)}", exc_info=True)
                     return jsonify({'error': f'下载视频失败: {str(e)}'}), 500
             else:
-                # 如果只有路径，确保它是完整路径
-                video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_path)
+                # 确保使用相对路径或完整路径
+                if not os.path.isabs(video_path):
+                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_path)
                 
             # 检查视频文件是否存在
             if not os.path.exists(video_path):
-                app.logger.error(f"视频文件不存在: {video_path}")
-                return jsonify({'error': f'视频文件不存在'}), 404
+                logger.error(f"视频文件不存在: {video_path}")
+                return jsonify({'error': f'视频文件不存在: {video_path}'}), 404
             
-            app.logger.info(f"开始提取帧，视频路径: {video_path}")
+            logger.info(f"开始提取帧，视频路径: {video_path}")
             
             # 提取帧
             try:
                 # 确保输出目录存在
-                output_dir = os.path.join(app.config['FRAMES_FOLDER'], os.path.splitext(os.path.basename(video_path))[0])
+                base_name = os.path.basename(video_path)
+                output_dir_name = os.path.splitext(base_name)[0]
+                output_dir = os.path.join(app.config['FRAMES_FOLDER'], output_dir_name)
                 os.makedirs(output_dir, exist_ok=True)
+                
+                logger.info(f"输出目录: {output_dir}")
                 
                 # 执行帧提取
                 frame_count = extract_frames(
@@ -194,42 +202,56 @@ def extract_frames_api():
                     quality=int(quality)
                 )
                 
+                logger.info(f"成功提取 {frame_count} 帧")
+                
                 # 构建帧数据
                 base_url = app.config.get('FRAMES_BASE_URL', '')
-                frames_dir_name = os.path.splitext(os.path.basename(video_path))[0]
+                if not base_url:
+                    # 如果没有设置基础URL，使用当前请求的URL构建
+                    base_url = request.url_root.rstrip('/')
+                    
+                # 调整为相对路径
+                frames_url_path = f"frames/{output_dir_name}"
+                # 列出所有帧文件
                 frame_files = sorted([f for f in os.listdir(output_dir) if f.endswith(f'.{format_type}')])
-                frames = []
                 
+                frames = []
                 for i, frame_file in enumerate(frame_files):
-                    frame_url = f"{base_url}/{frames_dir_name}/{frame_file}"
+                    # 构建完整URL，确保它是可访问的
+                    frame_url = f"{base_url}/{frames_url_path}/{frame_file}"
                     frames.append({
                         'url': frame_url,
                         'filename': frame_file,
                         'index': i
                     })
                 
-                app.logger.info(f"成功提取 {frame_count} 帧")
+                logger.info(f"返回 {len(frames)} 个帧URL")
                 
                 # 返回结果
                 return jsonify({
                     'frames': frames,
                     'message': f'成功提取 {frame_count} 帧',
-                    'count': frame_count
+                    'count': frame_count,
+                    'baseUrl': base_url,
+                    'framesPath': frames_url_path
                 })
                 
             except Exception as e:
-                app.logger.error(f"提取帧时出错: {str(e)}", exc_info=True)
+                logger.error(f"提取帧时出错: {str(e)}", exc_info=True)
                 return jsonify({'error': f'提取帧时出错: {str(e)}'}), 500
         
         # 处理表单数据请求 (兼容旧格式)
         else:
-            app.logger.warning("收到非JSON格式请求，尝试作为表单数据处理")
-            # 此处保留旧的处理逻辑
+            logger.warning("收到非JSON格式请求，尝试作为表单数据处理")
+            if 'video' not in request.files and 'videoUrl' not in request.form:
+                return jsonify({'error': '未找到视频文件或URL'}), 400
+            
+            # 处理表单数据请求的逻辑
             # ...
             return jsonify({'error': '请使用JSON格式请求'}), 400
                 
     except Exception as e:
-        app.logger.error(f"处理请求时出错: {str(e)}", exc_info=True)
+        logger.error(f"处理请求时出错: {str(e)}", exc_info=True)
         return jsonify({'error': f'处理请求时出错: {str(e)}'}), 500
 
 @app.route('/frames/<folder_name>')
@@ -291,6 +313,12 @@ def proxy_image():
     except Exception as e:
         app.logger.error(f"代理图片请求失败: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
+
+# 配置静态文件路由 - 允许直接访问提取的帧
+@app.route('/frames/<path:filepath>')
+def serve_frames(filepath):
+    """提供对提取的帧的访问"""
+    return send_file(os.path.join(app.config['FRAMES_FOLDER'], filepath))
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))

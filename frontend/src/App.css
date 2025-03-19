@@ -203,56 +203,66 @@ button:hover {
   color: #7f8c8d;
 }
 
-/* 文件预览样式 */
+/* 文件预览区域 */
 .file-preview {
   width: 100%;
+  margin-top: 10px;
 }
 
 .file-preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  background-color: #f5f5f5;
-  border-radius: 8px 8px 0 0;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0; /* 允许flex子项收缩到其内容宽度以下 */
+  padding-right: 10px;
 }
 
 .file-name {
-  font-weight: 500;
-  color: #2c3e50;
-  white-space: nowrap;
+  font-size: 14px;
+  word-break: break-word; /* 单词内部换行 */
+  display: inline-block;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 300px;
 }
 
 .remove-file-btn {
-  background-color: #e74c3c;
+  background-color: #f44336;
   color: white;
   border: none;
+  padding: 5px 15px;
   border-radius: 4px;
-  padding: 5px 10px;
-  font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s;
-  width: auto;
+  font-size: 14px;
+  flex-shrink: 0; /* 防止按钮被压缩 */
+  transition: background-color 0.2s;
 }
 
 .remove-file-btn:hover {
-  background-color: #c0392b;
+  background-color: #d32f2f;
 }
 
+/* 视频预览容器 */
 .video-preview-container {
   width: 100%;
-  background-color: #000;
-  border-radius: 0 0 8px 8px;
+  margin-top: 10px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
 .video-preview {
   width: 100%;
+  height: auto;
   max-height: 400px;
-  display: block;
+  object-fit: contain;
+  background-color: #000;
 }
 
 /* 提取选项 */

@@ -18,7 +18,7 @@ function Footer() {
         </div>
         <div className="mt-4 text-center text-sm text-gray-400">
           <p>视频帧提取器是一个在线工具，用于从视频中无损提取帧。</p>
-          <p>网址: yt.cheesecatool.com/vf</p>
+          <p>如有需求或建议反馈，欢迎联系：imluluj8@outlook.com</p>
         </div>
       </div>
     </footer>

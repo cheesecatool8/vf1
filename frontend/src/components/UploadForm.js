@@ -200,7 +200,7 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
               <div className="file-preview">
                 <div className="file-preview-header">
                   <div className="file-info">
-                    <span className="file-name">{fileName}</span>
+                    <span className="file-name" title={fileName}>{fileName.length > 30 ? fileName.substring(0, 27) + '...' : fileName}</span>
                   </div>
                   <button 
                     className="remove-file-btn" 
