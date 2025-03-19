@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response, send_file
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
@@ -19,6 +19,9 @@ import mimetypes
 from functools import wraps
 import time
 import threading
+import requests
+import tempfile
+import json
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -235,6 +238,30 @@ def download_frame(folder_name, filename):
     except Exception as e:
         logger.error(f"获取下载链接时出错: {str(e)}")
         return jsonify({'error': f'获取下载链接时出错: {str(e)}'}), 500
+
+@app.route('/api/proxy-image')
+def proxy_image():
+    """代理图片请求，解决CORS问题"""
+    url = request.args.get('url')
+    if not url:
+        return jsonify({"error": "Missing URL parameter"}), 400
+    
+    try:
+        # 转发请求到R2存储
+        response = requests.get(url, stream=True)
+        
+        # 创建Flask响应对象
+        proxy_response = Response(
+            response.iter_content(chunk_size=1024),
+            content_type=response.headers.get('content-type', 'image/jpeg')
+        )
+        
+        # 设置响应头
+        proxy_response.headers.set('Access-Control-Allow-Origin', '*')
+        return proxy_response
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))

@@ -13,6 +13,16 @@ function FrameGallery({ frames }) {
   const [isPreloading, setIsPreloading] = useState(false);
   const [preloadProgress, setPreloadProgress] = useState(0);
 
+  // 处理代理URL，解决CORS问题
+  const getProxyUrl = (originalUrl) => {
+    // 检查URL是否来自Cloudflare R2存储
+    if (originalUrl.includes('cloudflarestorage.com')) {
+      // 使用代理接口
+      return `/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
+    }
+    return originalUrl;
+  };
+
   // 图片预加载函数
   const preloadImages = useCallback(async () => {
     if (frames.length === 0) return;
@@ -34,7 +44,8 @@ function FrameGallery({ frames }) {
         const promise = new Promise((resolve, reject) => {
           img.onload = () => resolve(frame.url);
           img.onerror = () => reject(new Error(`Failed to load image: ${frame.url}`));
-          img.src = frame.url;
+          // 使用代理URL
+          img.src = getProxyUrl(frame.url);
         });
         
         try {
@@ -107,13 +118,31 @@ function FrameGallery({ frames }) {
   }, [lightboxImage, lightboxIndex, viewNextImage, viewPrevImage]);
 
   const downloadFrame = (frame) => {
-    // 使用a标签下载，而不是打开新窗口
-    const link = document.createElement('a');
-    link.href = frame.url;
-    link.download = `frame_${frame.index + 1}.${frame.format || 'jpg'}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // 使用代理URL，解决CORS问题
+    const proxyUrl = getProxyUrl(frame.url);
+    
+    // 使用fetch获取图片数据，避免直接下载导致的CORS问题
+    fetch(proxyUrl)
+      .then(response => response.blob())
+      .then(blob => {
+        // 创建一个本地URL
+        const url = window.URL.createObjectURL(blob);
+        
+        // 使用a标签下载
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `frame_${frame.index + 1}.${frame.format || 'jpg'}`;
+        document.body.appendChild(link);
+        link.click();
+        
+        // 清理
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      })
+      .catch(error => {
+        console.error('下载出错:', error);
+        alert('下载失败，请重试');
+      });
   };
 
   const downloadAllFrames = async () => {
@@ -131,14 +160,22 @@ function FrameGallery({ frames }) {
       
       for (let i = 0; i < totalFrames; i++) {
         const frame = frames[i];
-        const response = await fetch(frame.url);
-        const blob = await response.blob();
+        const proxyUrl = getProxyUrl(frame.url);
         
-        // 添加到zip文件，使用帧号作为文件名
-        zip.file(`frame_${i + 1}.${frame.format || 'jpg'}`, blob);
-        
-        // 更新进度
-        setDownloadProgress(Math.round(((i + 1) / totalFrames) * 100));
+        try {
+          const response = await fetch(proxyUrl);
+          const blob = await response.blob();
+          
+          // 添加到zip文件，使用帧号作为文件名
+          zip.file(`frame_${i + 1}.${frame.format || 'jpg'}`, blob);
+          
+          // 更新进度
+          setDownloadProgress(Math.round(((i + 1) / totalFrames) * 100));
+        } catch (error) {
+          console.error(`获取第${i+1}帧图片出错:`, error);
+          // 继续下一帧，而不是完全中断
+          continue;
+        }
       }
       
       // 生成zip文件
@@ -189,14 +226,22 @@ function FrameGallery({ frames }) {
       for (let i = 0; i < totalSelected; i++) {
         const frameIndex = selectedFrames[i];
         const frame = frames[frameIndex];
-        const response = await fetch(frame.url);
-        const blob = await response.blob();
+        const proxyUrl = getProxyUrl(frame.url);
         
-        // 添加到zip文件，使用帧号作为文件名
-        zip.file(`frame_${frameIndex + 1}.${frame.format || 'jpg'}`, blob);
-        
-        // 更新进度
-        setDownloadProgress(Math.round(((i + 1) / totalSelected) * 100));
+        try {
+          const response = await fetch(proxyUrl);
+          const blob = await response.blob();
+          
+          // 添加到zip文件，使用帧号作为文件名
+          zip.file(`frame_${frameIndex + 1}.${frame.format || 'jpg'}`, blob);
+          
+          // 更新进度
+          setDownloadProgress(Math.round(((i + 1) / totalSelected) * 100));
+        } catch (error) {
+          console.error(`获取第${frameIndex+1}帧图片出错:`, error);
+          // 继续下一帧，而不是完全中断
+          continue;
+        }
       }
       
       // 生成zip文件
@@ -394,7 +439,7 @@ function FrameGallery({ frames }) {
                   />
                 </div>
                 <img
-                  src={frame.url}
+                  src={getProxyUrl(frame.url)}
                   alt={`Frame ${index + 1}`}
                   className="frame-image full-image"
                   title={isSelecting ? '点击选择' : '点击查看大图'}
@@ -464,7 +509,7 @@ function FrameGallery({ frames }) {
                   </td>
                   <td className="thumbnail-cell">
                     <img
-                      src={frame.url}
+                      src={getProxyUrl(frame.url)}
                       alt={`Frame ${index + 1}`}
                       className="thumbnail full-image"
                       onClick={(e) => {
@@ -506,7 +551,7 @@ function FrameGallery({ frames }) {
             </button>
             
             <img 
-              src={lightboxImage.url} 
+              src={getProxyUrl(lightboxImage.url)} 
               alt={`帧 ${lightboxIndex + 1}`}
               className="lightbox-image" 
             />
