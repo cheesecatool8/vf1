@@ -275,57 +275,41 @@
             z-index: 1010;
         }
         
-        /* 添加帧选择功能的样式 */
+        /* 选择框样式改进 */
         .frame-checkbox {
-            position: absolute;
-            top: 10px;
-            right: 10px;
             width: 20px;
             height: 20px;
+            cursor: pointer;
+            display: block !important;
+            opacity: 1 !important;
             z-index: 10;
-            cursor: pointer;
-        }
-        .frame-checkbox-label {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            background-color: rgba(255, 255, 255, 0.7);
-            border: 2px solid #3498db;
-            border-radius: 4px;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            z-index: 5;
-        }
-        .frame-checkbox:checked + .frame-checkbox-label {
-            background-color: #3498db;
-        }
-        .frame-checkbox:checked + .frame-checkbox-label:after {
-            content: '✓';
-            position: absolute;
-            top: -2px;
-            left: 3px;
-            color: white;
-            font-size: 14px;
         }
         
-        .select-actions {
-            margin-top: 15px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .btn-select-all {
-            background-color: #95a5a6;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
+        .frame-checkbox-label {
+            display: block;
+            width: 24px;
+            height: 24px;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 5;
             cursor: pointer;
-            font-size: 14px;
         }
-        .btn-select-all:hover {
-            background-color: #7f8c8d;
+
+        /* 列表视图中的选择框样式 */
+        .frames-table input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .frame-selection {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 2;
+            opacity: 1;
+            transition: opacity 0.2s;
         }
         
         /* 添加导航按钮样式 */
@@ -484,6 +468,7 @@
         <div class="image-counter" id="image-counter">1/10</div>
     </div>
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
         // 处理文件上传区域点击
         const uploadArea = document.getElementById('upload-area');
@@ -697,7 +682,7 @@
         });
         
         // 下载选中的帧
-        downloadSelectedBtn.addEventListener('click', function() {
+        downloadSelectedBtn.addEventListener('click', async function() {
             const selectedCheckboxes = document.querySelectorAll('.frame-checkbox:checked');
             
             if (selectedCheckboxes.length === 0) {
@@ -705,21 +690,43 @@
                 return;
             }
             
-            // 创建一个隐形的链接来下载每个选中的文件
-            selectedCheckboxes.forEach((checkbox, index) => {
-                const link = document.createElement('a');
-                link.href = checkbox.dataset.url;
-                link.download = checkbox.dataset.filename;
+            try {
+                // 创建新的JSZip实例
+                const zip = new JSZip();
                 
-                // 使用setTimeout来顺序下载，避免浏览器同时下载过多文件
-                setTimeout(() => {
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }, index * 100);
-            });
-            
-            showMessage(`正在下载 ${selectedCheckboxes.length} 个帧`, 'success');
+                // 显示下载进度消息
+                showMessage(`正在准备 ${selectedCheckboxes.length} 个帧进行打包下载...`, 'success');
+                
+                // 为每个选中的帧获取图片数据并添加到zip中
+                const fetchPromises = Array.from(selectedCheckboxes).map(async (checkbox, index) => {
+                    const response = await fetch(checkbox.dataset.url);
+                    const blob = await response.blob();
+                    // 添加到zip文件
+                    zip.file(checkbox.dataset.filename, blob);
+                });
+                
+                // 等待所有图片获取完成
+                await Promise.all(fetchPromises);
+                
+                // 生成zip文件
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                
+                // 创建下载链接并触发下载
+                const downloadLink = document.createElement('a');
+                downloadLink.href = URL.createObjectURL(zipBlob);
+                downloadLink.download = `selected_frames_${new Date().getTime()}.zip`;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // 释放URL对象
+                URL.revokeObjectURL(downloadLink.href);
+                
+                showMessage(`已下载 ${selectedCheckboxes.length} 个帧为压缩包`, 'success');
+            } catch (error) {
+                console.error('下载出错:', error);
+                showMessage('打包下载失败，请重试', 'error');
+            }
         });
         
         // 修改图片预览逻辑，添加导航功能
