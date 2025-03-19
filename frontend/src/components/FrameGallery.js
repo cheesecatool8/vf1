@@ -17,15 +17,14 @@ function FrameGallery({ frames }) {
   const getProxyUrl = (originalUrl) => {
     // 检查URL是否来自storage.y.cheesecatool.com
     if (originalUrl.includes('storage.y.cheesecatool.com')) {
-      // 使用API代理接口获取图片，避免404错误
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
-      return `${apiUrl}/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
+      // 直接替换为storage-worker URL
+      return originalUrl.replace('storage.y.cheesecatool.com', 'storage-worker.imluluj8-7a3.workers.dev');
     }
     
     // 检查URL是否来自Cloudflare R2存储
     if (originalUrl.includes('cloudflarestorage.com')) {
       // 使用代理接口
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://little-smoke-90a1.imluluj8-7a3.workers.dev';
       return `${apiUrl}/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
     }
     
