@@ -314,6 +314,38 @@ def proxy_image():
         app.logger.error(f"代理图片请求失败: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/frame-image/<path:filepath>')
+def get_frame_image(filepath):
+    """直接从存储获取帧图片，避免CORS和404问题"""
+    try:
+        # 构造完整的对象路径
+        object_name = f"frames/{filepath}"
+        logger.info(f"请求获取帧图片: {object_name}")
+        
+        # 从R2存储获取图片内容
+        image_data = r2_storage.get_file(object_name)
+        
+        if image_data:
+            # 确定正确的MIME类型
+            content_type = 'image/jpeg'
+            if filepath.lower().endswith('.png'):
+                content_type = 'image/png'
+            elif filepath.lower().endswith('.webp'):
+                content_type = 'image/webp'
+            
+            # 创建响应
+            response = Response(image_data, content_type=content_type)
+            response.headers.set('Access-Control-Allow-Origin', '*')
+            response.headers.set('Cache-Control', 'public, max-age=31536000')
+            return response
+        else:
+            logger.error(f"帧图片不存在: {object_name}")
+            return jsonify({"error": "图片不存在"}), 404
+            
+    except Exception as e:
+        logger.error(f"获取帧图片失败: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
 # 配置静态文件路由 - 允许直接访问提取的帧
 @app.route('/frames/<path:filepath>')
 def serve_frames(filepath):

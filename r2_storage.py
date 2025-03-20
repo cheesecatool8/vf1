@@ -106,4 +106,16 @@ class R2Storage:
             return response.get('Contents', [])
         except Exception as e:
             logger.error(f"列出 R2 文件失败: {str(e)}")
-            return [] 
+            return []
+
+    def get_file(self, object_name):
+        """获取文件内容"""
+        try:
+            response = self.s3.get_object(
+                Bucket=self.bucket,
+                Key=object_name
+            )
+            return response['Body'].read()
+        except Exception as e:
+            logger.error(f"获取文件内容失败: {str(e)}")
+            return None 
