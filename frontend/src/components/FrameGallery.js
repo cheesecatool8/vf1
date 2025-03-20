@@ -17,24 +17,15 @@ function FrameGallery({ frames }) {
   const getProxyUrl = (originalUrl) => {
     // 检查URL是否来自storage.y.cheesecatool.com
     if (originalUrl.includes('storage.y.cheesecatool.com')) {
-      // 从URL提取文件路径
-      const filePath = originalUrl.split('/frames/')[1];
-      if (filePath) {
-        // 使用API URL直接获取图片，避免存储桶访问
-        const apiUrl = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
-        return `${apiUrl}/api/frame-image/${encodeURIComponent(filePath)}`;
-      }
+      // 直接返回原URL - 使用Worker URL直接访问
+      // Cloudflare Workers已经配置了CORS，允许直接访问
+      return originalUrl;
     }
     
     // 检查URL是否来自Cloudflare R2存储
     if (originalUrl.includes('cloudflarestorage.com') || originalUrl.includes('storage-worker.imluluj8-7a3.workers.dev')) {
-      // 从URL提取文件路径
-      const filePath = originalUrl.split('/frames/')[1];
-      if (filePath) {
-        // 使用API URL直接获取图片
-        const apiUrl = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
-        return `${apiUrl}/api/frame-image/${encodeURIComponent(filePath)}`;
-      }
+      // 直接返回原URL - 这些也应该可以直接访问
+      return originalUrl;
     }
     
     return originalUrl;
