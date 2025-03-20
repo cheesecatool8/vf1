@@ -202,29 +202,55 @@ def extract_frames_api():
                     quality=int(quality)
                 )
                 
-                logger.info(f"成功提取 {frame_count} 帧")
+                logger.info(f"成功提取 {frame_count} 帧，准备上传到R2存储")
                 
-                # 构建帧数据
+                # 将帧上传到R2存储
                 base_url = app.config.get('FRAMES_BASE_URL', '')
                 if not base_url:
                     # 如果没有设置基础URL，使用当前请求的URL构建
                     base_url = request.url_root.rstrip('/')
+                
+                logger.info(f"使用基础URL: {base_url}")
                     
                 # 调整为相对路径
                 frames_url_path = f"frames/{output_dir_name}"
                 # 列出所有帧文件
                 frame_files = sorted([f for f in os.listdir(output_dir) if f.endswith(f'.{format_type}')])
                 
+                logger.info(f"准备上传 {len(frame_files)} 个文件到R2存储")
+                
                 frames = []
+                upload_success_count = 0
+                
                 for i, frame_file in enumerate(frame_files):
+                    # 构建本地文件路径和对象存储路径
+                    local_file_path = os.path.join(output_dir, frame_file)
+                    object_name = f"{frames_url_path}/{frame_file}"
+                    
+                    # 确定内容类型
+                    content_type = f"image/{format_type}"
+                    
+                    # 上传文件到R2存储
+                    uploaded = r2_storage.upload_file(local_file_path, object_name, content_type)
+                    if uploaded:
+                        upload_success_count += 1
+                    else:
+                        logger.warning(f"上传帧到R2失败: {object_name}")
+                    
                     # 构建完整URL，确保它是可访问的
-                    frame_url = f"{base_url}/{frames_url_path}/{frame_file}"
+                    frame_url = f"{base_url}/{object_name}"
                     frames.append({
                         'url': frame_url,
                         'filename': frame_file,
-                        'index': i
+                        'index': i,
+                        'format': format_type
                     })
+                    
+                    # 每上传10个文件记录一次日志
+                    if (i+1) % 10 == 0 or i == len(frame_files)-1:
+                        logger.info(f"已上传 {i+1}/{len(frame_files)} 个文件")
                 
+                logger.info(f"成功上传 {upload_success_count}/{len(frame_files)} 个文件到R2存储")
                 logger.info(f"返回 {len(frames)} 个帧URL")
                 
                 # 返回结果

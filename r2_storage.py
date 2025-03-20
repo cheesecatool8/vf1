@@ -25,11 +25,15 @@ class R2Storage:
     def upload_file(self, file_path, object_name, content_type=None):
         """上传文件到 R2 存储"""
         try:
+            logger.info(f"开始上传文件到R2: {file_path} -> {object_name}")
+            
             extra_args = {
                 'CacheControl': CACHE_CONTROL
             }
             if content_type:
                 extra_args['ContentType'] = content_type
+                
+            logger.info(f"上传参数: bucket={self.bucket}, extra_args={extra_args}")
 
             self.s3.upload_file(
                 file_path,
@@ -37,9 +41,11 @@ class R2Storage:
                 object_name,
                 ExtraArgs=extra_args
             )
+            
+            logger.info(f"文件成功上传到R2: {object_name}")
             return True
         except Exception as e:
-            logger.error(f"上传文件到 R2 失败: {str(e)}")
+            logger.error(f"上传文件到 R2 失败: {str(e)}", exc_info=True)
             return False
 
     def upload_fileobj(self, file_obj, object_name, content_type=None):
