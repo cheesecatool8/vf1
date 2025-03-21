@@ -17,7 +17,6 @@ console.log('环境变量:', {
 
 function App() {
   const [videoFile, setVideoFile] = useState(null);
-  const [videoUrl, setVideoUrl] = useState('');
   const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,7 +24,6 @@ function App() {
   // 处理上传的视频文件
   const handleVideoUpload = (file) => {
     setVideoFile(file);
-    setVideoUrl(URL.createObjectURL(file));
     setFrames([]);
     setError('');
   };
