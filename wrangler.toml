@@ -1,3 +1,8 @@
 name = "api-worker"
 main = "api-worker.js"
 compatibility_date = "2023-10-30"
+
+# Pages配置
+[site]
+bucket = "./frontend/build"
+entry-point = "."

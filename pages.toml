@@ -1,0 +1,9 @@
+# Cloudflare Pages配置
+pages_build_output_dir = "frontend/build"
+
+[build]
+command = "cd frontend && export CI=false && export ESLINT_NO_DEV_ERRORS=true && npm install && npm run build"
+
+[build.environment]
+CI = "false"
+ESLINT_NO_DEV_ERRORS = "true" 

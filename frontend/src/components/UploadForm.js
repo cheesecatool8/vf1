@@ -283,7 +283,7 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
         <h3 className="options-title">提取选项</h3>
         
         <div className="form-group">
-          <label htmlFor="fps">{getText('frameRate')}</label>
+          <label htmlFor="fps">{getText('fps')}</label>
           <select 
             id="fps" 
             value={fps} 
