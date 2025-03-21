@@ -8,6 +8,17 @@ import Footer from './components/Footer';
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
 const STORAGE_URL = process.env.REACT_APP_STORAGE_URL || 'https://storage.y.cheesecatool.com';
 
+// 支持的语言列表
+const LANGUAGES = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' },
+  { code: 'ko', name: '한국어', flag: '🇰🇷' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+];
+
 // 调试日志 - 使用正确的环境变量格式
 console.log('环境变量:', {
   REACT_APP_API_URL: process.env.REACT_APP_API_URL,
@@ -20,12 +31,33 @@ function App() {
   const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [language, setLanguage] = useState('en'); // 默认英文
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   // 处理上传的视频文件
   const handleVideoUpload = (file) => {
     setVideoFile(file);
     setFrames([]);
     setError('');
+  };
+
+  // 切换语言菜单显示状态
+  const toggleLanguageMenu = () => {
+    setShowLanguageMenu(!showLanguageMenu);
+  };
+
+  // 选择语言
+  const selectLanguage = (langCode) => {
+    setLanguage(langCode);
+    setShowLanguageMenu(false);
+    // 这里可以添加实际的语言切换逻辑，如调用翻译API或加载不同语言的文本
+    console.log(`切换语言到: ${langCode}`);
+    // 如果需要，可以重新加载页面或发送事件到父组件
+  };
+
+  // 获取当前语言信息
+  const getCurrentLanguage = () => {
+    return LANGUAGES.find(lang => lang.code === language) || LANGUAGES[0];
   };
 
   // 提取帧
@@ -116,9 +148,37 @@ function App() {
         <img src="images/cat-icon.png" alt="猫咪图标" className="nav-logo" />
         <div className="nav-title">芝士猫工具箱</div>
         <div className="nav-links">
-          <a href="https://y.cheesecatool.com/" className="nav-link">上传视频文件提取视频帧</a>
-          <a href="https://y.cheesecatool.com/url" className="nav-link">视频URL提取视频帧</a>
-          <a href="https://yt.cheesecatool.com/" className="nav-link">YOUTUBE视频数据分析</a>
+          <a href="https://y.cheesecatool.com/" className="nav-link" target="_blank" rel="noopener noreferrer">上传视频文件提取视频帧</a>
+          <a href="https://y.cheesecatool.com/url" className="nav-link" target="_blank" rel="noopener noreferrer">视频URL提取视频帧</a>
+          <a href="https://yt.cheesecatool.com/" className="nav-link" target="_blank" rel="noopener noreferrer">YOUTUBE视频数据分析</a>
+        </div>
+
+        {/* 语言选择器 */}
+        <div className="language-selector">
+          <button 
+            className="language-btn" 
+            onClick={toggleLanguageMenu}
+            aria-label="Select language"
+          >
+            <span className="language-flag">{getCurrentLanguage().flag}</span>
+            <span className="language-name">{getCurrentLanguage().name}</span>
+            <span className="dropdown-arrow">▼</span>
+          </button>
+          
+          {showLanguageMenu && (
+            <div className="language-dropdown">
+              {LANGUAGES.map(lang => (
+                <button 
+                  key={lang.code} 
+                  className={`language-option ${lang.code === language ? 'active' : ''}`}
+                  onClick={() => selectLanguage(lang.code)}
+                >
+                  <span className="language-flag">{lang.flag}</span>
+                  <span className="language-name">{lang.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       

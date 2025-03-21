@@ -442,8 +442,45 @@
             <img src="images/cat-icon.png" alt="芝士猫" class="nav-logo">
             <div class="nav-title">芝士猫工具箱</div>
             <div class="nav-links">
-                <a href="https://y.cheesecatool.com/" class="nav-link">上传视频文件提取视频帧</a>
-                <a href="https://yt.cheesecatool.com/" class="nav-link">YOUTUBE视频数据分析</a>
+                <a href="https://y.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">上传视频文件提取视频帧</a>
+                <a href="https://yt.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">YOUTUBE视频数据分析</a>
+            </div>
+            <div class="language-selector">
+                <button class="language-btn" onclick="toggleLanguageMenu()" aria-label="Select language">
+                    <span class="language-flag">🇺🇸</span>
+                    <span class="language-name">English</span>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="language-dropdown" id="languageDropdown" style="display: none;">
+                    <button class="language-option active" onclick="selectLanguage('en')">
+                        <span class="language-flag">🇺🇸</span>
+                        <span class="language-name">English</span>
+                    </button>
+                    <button class="language-option" onclick="selectLanguage('zh')">
+                        <span class="language-flag">🇨🇳</span>
+                        <span class="language-name">中文</span>
+                    </button>
+                    <button class="language-option" onclick="selectLanguage('ja')">
+                        <span class="language-flag">🇯🇵</span>
+                        <span class="language-name">日本語</span>
+                    </button>
+                    <button class="language-option" onclick="selectLanguage('ko')">
+                        <span class="language-flag">🇰🇷</span>
+                        <span class="language-name">한국어</span>
+                    </button>
+                    <button class="language-option" onclick="selectLanguage('es')">
+                        <span class="language-flag">🇪🇸</span>
+                        <span class="language-name">Español</span>
+                    </button>
+                    <button class="language-option" onclick="selectLanguage('fr')">
+                        <span class="language-flag">🇫🇷</span>
+                        <span class="language-name">Français</span>
+                    </button>
+                    <button class="language-option" onclick="selectLanguage('de')">
+                        <span class="language-flag">🇩🇪</span>
+                        <span class="language-name">Deutsch</span>
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -838,6 +875,79 @@
                 showNextImage();
             });
         }
+
+        // 语言选择相关函数
+        function toggleLanguageMenu() {
+            const dropdown = document.getElementById('languageDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function selectLanguage(langCode) {
+            console.log('切换语言到:', langCode);
+            
+            // 更新按钮显示
+            const languageFlags = {
+                'en': '🇺🇸',
+                'zh': '🇨🇳',
+                'ja': '🇯🇵',
+                'ko': '🇰🇷',
+                'es': '🇪🇸',
+                'fr': '🇫🇷',
+                'de': '🇩🇪'
+            };
+            
+            const languageNames = {
+                'en': 'English',
+                'zh': '中文',
+                'ja': '日本語',
+                'ko': '한국어',
+                'es': 'Español',
+                'fr': 'Français',
+                'de': 'Deutsch'
+            };
+            
+            // 更新按钮文本
+            const btn = document.querySelector('.language-btn');
+            if (btn) {
+                const flagElement = btn.querySelector('.language-flag');
+                const nameElement = btn.querySelector('.language-name');
+                
+                if (flagElement) flagElement.textContent = languageFlags[langCode] || languageFlags['en'];
+                if (nameElement) nameElement.textContent = languageNames[langCode] || languageNames['en'];
+            }
+            
+            // 更新选项状态
+            const options = document.querySelectorAll('.language-option');
+            options.forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            const selectedOption = document.querySelector(`.language-option[onclick*="'${langCode}'"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('active');
+            }
+            
+            // 关闭下拉菜单
+            toggleLanguageMenu();
+            
+            // 这里可以添加实际的语言切换逻辑
+            // 例如: localStorage.setItem('language', langCode);
+            // 或者: window.location.href = `?lang=${langCode}`;
+        }
+        
+        // 点击外部区域关闭语言菜单
+        document.addEventListener('click', function(event) {
+            const languageSelector = document.querySelector('.language-selector');
+            const dropdown = document.getElementById('languageDropdown');
+            
+            if (languageSelector && dropdown && 
+                dropdown.style.display === 'block' && 
+                !languageSelector.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
     </script>
   </body>
 </html> 
