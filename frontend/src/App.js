@@ -48,7 +48,12 @@ const TRANSLATIONS = {
     format: "Format",
     actions: "Actions",
     loading: "Loading images...",
-    contact: "For suggestions or feedback, please contact: imluluj8@outlook.com"
+    contact: "For suggestions or feedback, please contact: imluluj8@outlook.com",
+    // 顶部导航栏
+    navTitle: "CheeseCat Toolbox",
+    navLinkUpload: "Upload Video File",
+    navLinkUrl: "Video URL Extraction",
+    navLinkYoutube: "YOUTUBE Video Analysis"
   },
   zh: {
     title: "芝士猫视频帧万能无损提取工具",
@@ -77,7 +82,12 @@ const TRANSLATIONS = {
     format: "格式",
     actions: "操作",
     loading: "加载图片中...",
-    contact: "如有需求或建议反馈，欢迎联系：imluluj8@outlook.com"
+    contact: "如有需求或建议反馈，欢迎联系：imluluj8@outlook.com",
+    // 顶部导航栏
+    navTitle: "芝士猫工具箱",
+    navLinkUpload: "上传视频文件提取视频帧",
+    navLinkUrl: "视频URL提取视频帧",
+    navLinkYoutube: "YOUTUBE视频数据分析"
   },
   ja: {
     title: "チーズキャット ビデオフレーム抽出ツール",
@@ -106,7 +116,12 @@ const TRANSLATIONS = {
     format: "フォーマット",
     actions: "アクション",
     loading: "画像を読み込み中...",
-    contact: "ご意見やフィードバックは、こちらまでご連絡ください: imluluj8@outlook.com"
+    contact: "ご意見やフィードバックは、こちらまでご連絡ください: imluluj8@outlook.com",
+    // 顶部导航栏
+    navTitle: "チーズキャットツールボックス",
+    navLinkUpload: "ビデオファイルをアップロード",
+    navLinkUrl: "ビデオURLからフレームを抽出",
+    navLinkYoutube: "YouTubeビデオデータ分析"
   },
   ko: {
     title: "치즈캣 비디오 프레임 추출 도구",
@@ -135,7 +150,12 @@ const TRANSLATIONS = {
     format: "형식",
     actions: "작업",
     loading: "이미지 로딩 중...",
-    contact: "제안이나 피드백이 있으시면 연락주세요: imluluj8@outlook.com"
+    contact: "제안이나 피드백이 있으시면 연락주세요: imluluj8@outlook.com",
+    // 顶部导航栏
+    navTitle: "치즈캣 툴박스",
+    navLinkUpload: "비디오 파일 업로드",
+    navLinkUrl: "비디오 URL 추출",
+    navLinkYoutube: "YOUTUBE 비디오 데이터 분석"
   },
   es: {
     title: "Herramienta de Extracción de Fotogramas de Vídeo CheeseCat",
@@ -164,7 +184,12 @@ const TRANSLATIONS = {
     format: "Formato",
     actions: "Acciones",
     loading: "Cargando imágenes...",
-    contact: "Para sugerencias o comentarios, contacta: imluluj8@outlook.com"
+    contact: "Para sugerencias o comentarios, contacta: imluluj8@outlook.com",
+    // 顶部导航栏
+    navTitle: "Caja de Herramientas CheeseCat",
+    navLinkUpload: "Subir Archivo de Vídeo",
+    navLinkUrl: "Extracción de URL de Vídeo",
+    navLinkYoutube: "Análisis de Datos de Vídeo de YOUTUBE"
   },
   fr: {
     title: "CheeseCat - Outil d'Extraction de Frames Vidéo",
@@ -193,7 +218,12 @@ const TRANSLATIONS = {
     format: "Format",
     actions: "Actions",
     loading: "Chargement des images...",
-    contact: "Pour suggestions ou commentaires, contactez: imluluj8@outlook.com"
+    contact: "Pour suggestions ou commentaires, contactez: imluluj8@outlook.com",
+    // 顶部导航栏
+    navTitle: "Boîte à Outils CheeseCat",
+    navLinkUpload: "Télécharger un Fichier Vidéo",
+    navLinkUrl: "Extraction d'URL Vidéo",
+    navLinkYoutube: "Analyse de Données Vidéo YOUTUBE"
   },
   de: {
     title: "CheeseCat Video-Frame-Extrahierungstool",
@@ -222,7 +252,12 @@ const TRANSLATIONS = {
     format: "Format",
     actions: "Aktionen",
     loading: "Bilder werden geladen...",
-    contact: "Für Vorschläge oder Feedback kontaktieren Sie: imluluj8@outlook.com"
+    contact: "Für Vorschläge oder Feedback kontaktieren Sie: imluluj8@outlook.com",
+    // 顶部导航栏
+    navTitle: "CheeseCat Werkzeugkasten",
+    navLinkUpload: "Video-Datei hochladen",
+    navLinkUrl: "Video-URL-Extraktion",
+    navLinkYoutube: "YOUTUBE-Videodatenanalyse"
   }
 };
 
@@ -371,11 +406,11 @@ function App() {
       {/* 顶部导航栏 */}
       <div className="top-nav">
         <img src="images/cat-icon.png" alt="猫咪图标" className="nav-logo" />
-        <div className="nav-title">芝士猫工具箱</div>
+        <div className="nav-title">{getText('navTitle')}</div>
         <div className="nav-links">
-          <a href="https://y.cheesecatool.com/" className="nav-link" target="_blank" rel="noopener noreferrer">上传视频文件提取视频帧</a>
-          <a href="https://y.cheesecatool.com/url" className="nav-link" target="_blank" rel="noopener noreferrer">视频URL提取视频帧</a>
-          <a href="https://yt.cheesecatool.com/" className="nav-link" target="_blank" rel="noopener noreferrer">YOUTUBE视频数据分析</a>
+          <a href="https://y.cheesecatool.com/" className="nav-link" target="_blank" rel="noopener noreferrer">{getText('navLinkUpload')}</a>
+          <a href="https://y.cheesecatool.com/url" className="nav-link" target="_blank" rel="noopener noreferrer">{getText('navLinkUrl')}</a>
+          <a href="https://yt.cheesecatool.com/" className="nav-link" target="_blank" rel="noopener noreferrer">{getText('navLinkYoutube')}</a>
         </div>
 
         {/* 语言选择器 */}

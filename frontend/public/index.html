@@ -16,6 +16,9 @@
         const savedLanguage = localStorage.getItem('language');
         if (savedLanguage) {
           document.getElementById('html-root').setAttribute('lang', savedLanguage);
+          
+          // 更新静态页面的语言显示
+          updateStaticPageLanguage(savedLanguage);
         }
       });
       
@@ -23,8 +26,88 @@
       window.addEventListener('storage', function(e) {
         if (e.key === 'language') {
           document.getElementById('html-root').setAttribute('lang', e.newValue);
+          updateStaticPageLanguage(e.newValue);
         }
       });
+      
+      // 更新静态页面的语言显示
+      function updateStaticPageLanguage(language) {
+        // 获取需要更新的元素
+        const navTitle = document.querySelector('.nav-title');
+        const navLinks = document.querySelectorAll('.nav-links a');
+        const title = document.querySelector('h1');
+        const uploadTitle = document.querySelector('#upload-area h3');
+        const supportedFormats = document.querySelector('#upload-area p');
+        
+        // 根据当前语言设置文本
+        const translations = {
+          en: {
+            navTitle: "CheeseCat Toolbox",
+            navLinks: ["Extract Video Frames", "Video URL Extraction", "YOUTUBE Video Analysis"],
+            title: "CheeseCat Video Frame Extractor",
+            uploadTitle: "Upload or drop a video file here",
+            supportedFormats: "Supported formats: MP4, AVI, MOV, WMV, FLV, MKV"
+          },
+          zh: {
+            navTitle: "芝士猫工具箱",
+            navLinks: ["上传视频文件提取视频帧", "视频URL提取视频帧", "YOUTUBE视频数据分析"],
+            title: "芝士猫视频帧万能无损提取工具",
+            uploadTitle: "点击选择视频文件或拖放到此处",
+            supportedFormats: "支持的格式: MP4, AVI, MOV, WMV, FLV, MKV"
+          },
+          ja: {
+            navTitle: "チーズキャットツールボックス",
+            navLinks: ["ビデオファイルをアップロード", "ビデオURLからフレームを抽出", "YouTubeビデオデータ分析"],
+            title: "チーズキャット ビデオフレーム抽出ツール",
+            uploadTitle: "ビデオファイルをアップロードまたはドロップ",
+            supportedFormats: "サポートされているフォーマット: MP4, AVI, MOV, WMV, FLV, MKV"
+          },
+          ko: {
+            navTitle: "치즈캣 툴박스",
+            navLinks: ["비디오 파일 업로드", "비디오 URL 추출", "YOUTUBE 비디오 데이터 분석"],
+            title: "치즈캣 비디오 프레임 추출 도구",
+            uploadTitle: "비디오 파일을 업로드하거나 여기에 끌어다 놓으세요",
+            supportedFormats: "지원되는 형식: MP4, AVI, MOV, WMV, FLV, MKV"
+          },
+          es: {
+            navTitle: "Caja de Herramientas CheeseCat",
+            navLinks: ["Subir Archivo de Vídeo", "Extracción de URL de Vídeo", "Análisis de Datos de Vídeo de YOUTUBE"],
+            title: "Herramienta de Extracción de Fotogramas de Vídeo CheeseCat",
+            uploadTitle: "Sube o arrastra un archivo de vídeo aquí",
+            supportedFormats: "Formatos soportados: MP4, AVI, MOV, WMV, FLV, MKV"
+          },
+          fr: {
+            navTitle: "Boîte à Outils CheeseCat",
+            navLinks: ["Télécharger un Fichier Vidéo", "Extraction d'URL Vidéo", "Analyse de Données Vidéo YOUTUBE"],
+            title: "CheeseCat - Outil d'Extraction de Frames Vidéo",
+            uploadTitle: "Téléchargez ou déposez un fichier vidéo ici",
+            supportedFormats: "Formats supportés: MP4, AVI, MOV, WMV, FLV, MKV"
+          },
+          de: {
+            navTitle: "CheeseCat Werkzeugkasten",
+            navLinks: ["Video-Datei hochladen", "Video-URL-Extraktion", "YOUTUBE-Videodatenanalyse"],
+            title: "CheeseCat Video-Frame-Extrahierungstool",
+            uploadTitle: "Laden Sie eine Videodatei hoch oder ziehen Sie sie hierher",
+            supportedFormats: "Unterstützte Formate: MP4, AVI, MOV, WMV, FLV, MKV"
+          }
+        };
+        
+        // 获取当前语言的翻译，如果没有则使用英文
+        const currentTranslation = translations[language] || translations.en;
+        
+        // 更新页面文本
+        if (navTitle) navTitle.textContent = currentTranslation.navTitle;
+        
+        if (navLinks && navLinks.length >= 3) {
+          for (let i = 0; i < Math.min(navLinks.length, currentTranslation.navLinks.length); i++) {
+            navLinks[i].textContent = currentTranslation.navLinks[i];
+          }
+        }
+        
+        if (title) title.textContent = currentTranslation.title;
+        if (uploadTitle) uploadTitle.textContent = currentTranslation.uploadTitle;
+        if (supportedFormats) supportedFormats.textContent = currentTranslation.supportedFormats;
+      }
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -459,7 +542,8 @@
             <div class="nav-title">CheeseCat Toolbox</div>
             <div class="nav-links">
                 <a href="https://y.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">Extract Video Frames</a>
-                <a href="https://yt.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">YOUTUBE Video Data Analysis</a>
+                <a href="https://y.cheesecatool.com/url" class="nav-link" target="_blank" rel="noopener noreferrer">Video URL Extraction</a>
+                <a href="https://yt.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">YOUTUBE Video Analysis</a>
             </div>
             <div class="language-selector">
                 <button class="language-btn" onclick="toggleLanguageMenu()" aria-label="Select language">
@@ -947,9 +1031,10 @@
             // 关闭下拉菜单
             toggleLanguageMenu();
             
-            // 这里可以添加实际的语言切换逻辑
-            // 例如: localStorage.setItem('language', langCode);
-            // 或者: window.location.href = `?lang=${langCode}`;
+            // 保存语言设置并更新页面
+            localStorage.setItem('language', langCode);
+            document.getElementById('html-root').setAttribute('lang', langCode);
+            updateStaticPageLanguage(langCode);
         }
         
         // 点击外部区域关闭语言菜单
