@@ -19,6 +19,43 @@ const LANGUAGES = [
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
 ];
 
+// 添加语言文本映射
+const TRANSLATIONS = {
+  en: {
+    title: "CheeseCat Video Frame Extraction Tool",
+    uploadTitle: "Upload or drop a video file here",
+    supportedFormats: "Supported formats: MP4, AVI, MOV, WMV, FLV, MKV",
+    fps: "Frame Rate (FPS)",
+    imageFormat: "Image Format",
+    imageQuality: "Image Quality",
+    startTime: "Start Time (seconds, optional)",
+    endTime: "End Time (seconds, optional)",
+    extractButton: "Extract Frames",
+    processing: "Processing video, please wait...",
+    extractedFrames: "Extracted Frames",
+    frame: "Frame",
+    download: "Download",
+    contact: "For suggestions or feedback, please contact: imluluj8@outlook.com"
+  },
+  zh: {
+    title: "芝士猫视频帧万能无损提取工具",
+    uploadTitle: "点击选择视频文件或拖放到此处",
+    supportedFormats: "支持的格式: MP4, AVI, MOV, WMV, FLV, MKV",
+    fps: "帧率 (FPS)",
+    imageFormat: "图像格式",
+    imageQuality: "图像质量",
+    startTime: "开始时间 (秒, 可选)",
+    endTime: "结束时间 (秒, 可选)",
+    extractButton: "提取视频帧",
+    processing: "正在提取视频帧，请稍候...",
+    extractedFrames: "提取的帧",
+    frame: "帧",
+    download: "下载",
+    contact: "如有需求或建议反馈，欢迎联系：imluluj8@outlook.com"
+  },
+  // 可以添加其他语言...
+};
+
 // 调试日志 - 使用正确的环境变量格式
 console.log('环境变量:', {
   REACT_APP_API_URL: process.env.REACT_APP_API_URL,
@@ -31,8 +68,13 @@ function App() {
   const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [language, setLanguage] = useState('en'); // 默认英文
+  const [language, setLanguage] = useState(localStorage.getItem('language') || 'en'); // 使用本地存储保存语言选择
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  // 获取翻译文本
+  const getText = (key) => {
+    return (TRANSLATIONS[language] && TRANSLATIONS[language][key]) || TRANSLATIONS.en[key];
+  };
 
   // 处理上传的视频文件
   const handleVideoUpload = (file) => {
@@ -50,9 +92,9 @@ function App() {
   const selectLanguage = (langCode) => {
     setLanguage(langCode);
     setShowLanguageMenu(false);
-    // 这里可以添加实际的语言切换逻辑，如调用翻译API或加载不同语言的文本
+    // 保存语言选择到localStorage
+    localStorage.setItem('language', langCode);
     console.log(`切换语言到: ${langCode}`);
-    // 如果需要，可以重新加载页面或发送事件到父组件
   };
 
   // 获取当前语言信息
@@ -186,7 +228,7 @@ function App() {
         {/* 标题与图标 */}
         <div className="title-with-icon">
           <img src="images/cat-icon.png" alt="猫咪图标" className="cat-icon" />
-          <h1 className="text-3xl font-bold">芝士猫视频帧万能无损提取工具</h1>
+          <h1 className="text-3xl font-bold">{getText('title')}</h1>
         </div>
         
         {/* 表单区域 */}
@@ -194,6 +236,8 @@ function App() {
           <UploadForm 
             onVideoUpload={handleVideoUpload} 
             onExtractFrames={handleExtractFrames}
+            language={language}
+            translations={TRANSLATIONS}
           />
         </div>
         
@@ -206,19 +250,19 @@ function App() {
         {loading && (
           <div className="loading" style={{display: 'block'}}>
             <div className="spinner"></div>
-            <p>正在提取视频帧，请稍候...</p>
+            <p>{getText('processing')}</p>
           </div>
         )}
         
         {frames.length > 0 && (
           <div id="results-section" style={{display: 'block'}}>
-            <h2 className="text-xl font-semibold mb-4">提取的帧</h2>
-            <FrameGallery frames={frames} />
+            <h2 className="text-xl font-semibold mb-4">{getText('extractedFrames')}</h2>
+            <FrameGallery frames={frames} language={language} translations={TRANSLATIONS} />
           </div>
         )}
       </div>
       
-      <Footer />
+      <Footer language={language} translations={TRANSLATIONS} />
     </div>
   );
 }

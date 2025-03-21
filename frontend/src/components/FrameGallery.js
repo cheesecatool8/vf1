@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import JSZip from 'jszip';
 
-function FrameGallery({ frames }) {
+function FrameGallery({ frames, language, translations }) {
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -12,6 +12,13 @@ function FrameGallery({ frames }) {
   const [imageCache, setImageCache] = useState({});
   const [isPreloading, setIsPreloading] = useState(false);
   const [preloadProgress, setPreloadProgress] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(null);
+
+  // 获取翻译文本
+  const getText = (key) => {
+    return (translations[language] && translations[language][key]) || translations.en[key];
+  };
 
   // 处理代理URL，解决CORS问题
   const getProxyUrl = (originalUrl) => {
@@ -101,6 +108,7 @@ function FrameGallery({ frames }) {
   // 关闭Lightbox
   const closeLightbox = () => {
     setLightboxImage(null);
+    setLightboxOpen(false);
     // 恢复滚动
     document.body.style.overflow = '';
   };
@@ -326,6 +334,8 @@ function FrameGallery({ frames }) {
   const openLightbox = (frame, index) => {
     setLightboxImage(frame);
     setLightboxIndex(index);
+    setCurrentFrame(frame.url);
+    setLightboxOpen(true);
     // 防止滚动
     document.body.style.overflow = 'hidden';
   };
@@ -448,7 +458,7 @@ function FrameGallery({ frames }) {
                 </div>
                 <img
                   src={getProxyUrl(frame.url)}
-                  alt={`Frame ${index + 1}`}
+                  alt={`${getText('frame')} ${index + 1}`}
                   className="frame-image full-image"
                   title={isSelecting ? '点击选择' : '点击查看大图'}
                 />
@@ -459,7 +469,7 @@ function FrameGallery({ frames }) {
                 )}
               </div>
               <div className="frame-info">
-                <p className="frame-number">帧 {index + 1}</p>
+                <p className="frame-number">{`${getText('frame')} ${index + 1}`}</p>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -468,7 +478,7 @@ function FrameGallery({ frames }) {
                   className="download-link"
                   type="button"
                 >
-                  下载
+                  {getText('download')}
                 </button>
               </div>
             </div>
@@ -518,7 +528,7 @@ function FrameGallery({ frames }) {
                   <td className="thumbnail-cell">
                     <img
                       src={getProxyUrl(frame.url)}
-                      alt={`Frame ${index + 1}`}
+                      alt={`${getText('frame')} ${index + 1}`}
                       className="thumbnail full-image"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -538,7 +548,7 @@ function FrameGallery({ frames }) {
                       className="table-action-btn download-btn"
                       type="button"
                     >
-                      下载
+                      {getText('download')}
                     </button>
                   </td>
                 </tr>
@@ -549,7 +559,7 @@ function FrameGallery({ frames }) {
       )}
 
       {/* Lightbox组件 - 添加改进的导航和信息 */}
-      {lightboxImage && (
+      {lightboxOpen && currentFrame && (
         <div className="lightbox-overlay" onClick={closeLightbox}>
           <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
             <button className="lightbox-close" onClick={closeLightbox} type="button">×</button>
@@ -559,8 +569,8 @@ function FrameGallery({ frames }) {
             </button>
             
             <img 
-              src={getProxyUrl(lightboxImage.url)} 
-              alt={`帧 ${lightboxIndex + 1}`}
+              src={getProxyUrl(currentFrame)} 
+              alt={`${getText('frame')} ${frames.findIndex(frame => frame.url === currentFrame) + 1}`}
               className="lightbox-image" 
             />
             
@@ -570,23 +580,23 @@ function FrameGallery({ frames }) {
             
             <div className="lightbox-footer">
               <div className="lightbox-caption">
-                第 {lightboxIndex + 1} 帧 / 共 {frames.length} 帧
+                {`${getText('frame')} ${frames.findIndex(frame => frame.url === currentFrame) + 1} / ${frames.length}`}
               </div>
               <div className="lightbox-actions">
                 <label className="lightbox-select">
                   <input 
                     type="checkbox"
-                    checked={selectedFrames.includes(lightboxIndex)}
-                    onChange={() => toggleFrameSelection(lightboxIndex)}
+                    checked={selectedFrames.includes(frames.findIndex(frame => frame.url === currentFrame))}
+                    onChange={() => toggleFrameSelection(frames.findIndex(frame => frame.url === currentFrame))}
                   />
-                  选择此帧
+                  {getText('select')}
                 </label>
                 <button 
                   className="lightbox-download-btn" 
-                  onClick={() => downloadFrame(lightboxImage)}
+                  onClick={() => downloadFrame(frames.find(frame => frame.url === currentFrame))}
                   type="button"
                 >
-                  下载图片
+                  {getText('download')}
                 </button>
               </div>
             </div>

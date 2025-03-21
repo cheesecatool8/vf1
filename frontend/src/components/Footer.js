@@ -1,6 +1,11 @@
 import React from 'react';
 
-function Footer() {
+function Footer({ language, translations }) {
+  // 获取翻译文本
+  const getText = (key) => {
+    return (translations[language] && translations[language][key]) || translations.en[key];
+  };
+
   return (
     <footer className="bg-gray-800 text-white py-6">
       <div className="container mx-auto px-4">
@@ -18,7 +23,7 @@ function Footer() {
         </div>
         <div className="mt-4 text-center text-sm text-gray-400">
           <p>视频帧提取器是一个在线工具，用于从视频中无损提取帧。</p>
-          <p>如有需求或建议反馈，欢迎联系：imluluj8@outlook.com</p>
+          <p>如有需求或建议反馈，欢迎联系：{getText('contact')}</p>
         </div>
       </div>
     </footer>

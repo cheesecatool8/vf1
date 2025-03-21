@@ -217,13 +217,13 @@ def extract_frames_api():
                 logger.info(f"输出目录: {output_dir}")
                 
                 # 执行帧提取
-            frame_count = extract_frames(
+                frame_count = extract_frames(
                     video_path, 
                     output_dir, 
                     fps=float(fps), 
-                start_time=start_time,
-                end_time=end_time,
-                format=format_type,
+                    start_time=start_time,
+                    end_time=end_time,
+                    format=format_type,
                     quality=int(quality)
                 )
                 
