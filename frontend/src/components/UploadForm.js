@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) {
+function UploadForm({ onVideoUpload, onExtractFrames, language, translations, disabled = false }) {
   const [videoFile, setVideoFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [fps, setFps] = useState(1);
@@ -123,6 +123,10 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    if (disabled) {
+      return; // 如果禁用了，不执行提交
+    }
+    
     if (!videoFile) {
       alert('请先上传视频文件');
       return;
@@ -143,11 +147,11 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
     <form onSubmit={handleSubmit}>
       <div 
         ref={uploadAreaRef}
-        className={`upload-area ${dragging ? 'dragging' : ''} ${videoFile ? 'has-preview' : ''}`}
-        onClick={handleAreaClick}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        className={`upload-area ${dragging ? 'dragging' : ''} ${videoFile ? 'has-preview' : ''} ${disabled ? 'disabled' : ''}`}
+        onClick={!disabled ? handleAreaClick : undefined}
+        onDragOver={!disabled ? handleDragOver : undefined}
+        onDragLeave={!disabled ? handleDragLeave : undefined}
+        onDrop={!disabled ? handleDrop : undefined}
       >
         {!videoFile ? (
           <div className="upload-label">
@@ -277,7 +281,13 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
           </div>
         </div>
         
-        <button type="submit" className="extract-btn">{getText('extractButton')}</button>
+        <button 
+          type="submit" 
+          className={`extract-btn ${disabled ? 'disabled' : ''}`}
+          disabled={disabled}
+        >
+          {getText('extractButton')}
+        </button>
       </div>
     </form>
   );
