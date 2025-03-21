@@ -6,7 +6,9 @@ function FrameGallery({ frames, language, translations }) {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [selectedFrames, setSelectedFrames] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [isDownloading, setIsDownloading] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isSelecting, setIsSelecting] = useState(false);
   const [imageCache, setImageCache] = useState({});
@@ -223,6 +225,8 @@ function FrameGallery({ frames, language, translations }) {
       });
   };
 
+  // 下载所有帧 - 保留但不在UI中使用
+  // eslint-disable-next-line no-unused-vars
   const downloadAllFrames = async () => {
     if (frames.length === 0) return;
     
