@@ -926,4 +926,48 @@ body {
     width: 2.5rem;
     height: 2.5rem;
   }
+}
+
+/* 图片加载失败样式 */
+.image-error {
+  border: 2px solid #ff4d4f;
+  opacity: 0.7;
+  background-color: #ffeeee;
+}
+
+/* 添加SSL错误指示器 */
+.ssl-error-notice {
+  background-color: #fff2e8;
+  border: 1px solid #ffbb96;
+  color: #d4380d;
+  padding: 8px 12px;
+  margin: 8px 0;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ssl-error-notice .icon {
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+/* 改进的加载指示器 */
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.loading-indicator .progress-text {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #1890ff;
 } 
