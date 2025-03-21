@@ -234,7 +234,7 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
         {!videoFile ? (
           <div className="upload-label">
             <div className="upload-icon">
-              <img src="images/upload-icon.png" alt="上传" style={{width: '64px', height: '64px', margin: '0 auto'}} />
+              <img src="images/upload-icon.png" alt="uoload" style={{width: '64px', height: '64px', margin: '0 auto'}} />
             </div>
             <div className="upload-text">{getText('uploadTitle')}</div>
             <div className="upload-hint">{getText('supportedFormats')}</div>
