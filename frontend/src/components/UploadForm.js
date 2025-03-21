@@ -1,12 +1,9 @@
 import React, { useState, useRef } from 'react';
 
-function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
-  const [url, setUrl] = useState('');
-  const [uploadMethod, setUploadMethod] = useState('file');
+function UploadForm({ onVideoUpload, onExtractFrames }) {
   const [filePreview, setFilePreview] = useState(null);
   const [fileName, setFileName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const [isUrlLoading, setIsUrlLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [extractionOptions, setExtractionOptions] = useState({
     fps: 1,
@@ -75,47 +72,7 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
   const handleRemoveFile = () => {
     setFilePreview(null);
     setFileName('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleUrlSubmit = (e) => {
-    e.preventDefault();
-    
-    // 验证URL格式
-    const urlValue = url.trim();
-    if (!urlValue) {
-      alert('请输入视频URL');
-      return;
-    }
-    
-    // 简单URL格式验证
-    if (!urlValue.startsWith('http://') && !urlValue.startsWith('https://')) {
-      alert('请输入有效的网址 (以http://或https://开头)');
-      return;
-    }
-    
-    // 视频URL格式验证，支持常见视频网站和直接视频链接
-    const videoUrlPattern = /\.(mp4|avi|mov|wmv|flv|mkv)($|\?)|youtube\.com\/|youtu\.be\/|vimeo\.com\//i;
-    if (!videoUrlPattern.test(urlValue)) {
-      if (!window.confirm('URL可能不是标准视频格式，是否继续?')) {
-        return;
-      }
-    }
-    
-    setIsUrlLoading(true);
-    
-    // 通知父组件处理URL
-    onVideoUrl(urlValue);
-    
-    // 自动跳转到提取选项区域
-    document.querySelector('.extraction-options').scrollIntoView({ 
-      behavior: 'smooth' 
-    });
-    
-    // 延迟关闭加载状态，让用户有足够时间看到反馈
-    setTimeout(() => setIsUrlLoading(false), 1000);
+    fileInputRef.current.value = '';
   };
 
   const handleExtractionSubmit = (e) => {
@@ -169,115 +126,52 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
   };
 
   return (
-    <div>
-      <div className="form-group">
-        <div className="upload-tabs">
-          <button
-            className={`tab-btn ${uploadMethod === 'file' ? 'active' : ''}`}
-            onClick={() => setUploadMethod('file')}
-            type="button"
-          >
-            上传视频文件
-          </button>
-          <button
-            className={`tab-btn ${uploadMethod === 'url' ? 'active' : ''}`}
-            onClick={() => setUploadMethod('url')}
-            type="button"
-          >
-            使用视频URL
-          </button>
-        </div>
-
-        {uploadMethod === 'file' ? (
-          <div 
-            className={`upload-area ${isDragging ? 'dragging' : ''} ${filePreview ? 'has-preview' : ''}`}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            {!filePreview ? (
-              <>
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={handleFileChange}
-                  className="hidden-input"
-                  id="video-upload"
-                  ref={fileInputRef}
-                />
-                <label
-                  htmlFor="video-upload"
-                  className="upload-label"
-                >
-                  <div className="upload-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 16V8M12 8L8 12M12 8L16 12" stroke="#bdc3c7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M3 15V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V15" stroke="#bdc3c7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <p className="upload-text">
-                    点击选择视频文件或拖放到此处
-                  </p>
-                  <p className="upload-hint">
-                    支持的格式: MP4, AVI, MOV, WMV, FLV
-                  </p>
-                </label>
-              </>
-            ) : (
-              <div className="file-preview">
-                <div className="file-preview-header">
-                  <div className="file-info">
-                    <span className="file-name" title={fileName}>{fileName.length > 30 ? fileName.substring(0, 27) + '...' : fileName}</span>
-                  </div>
-                  <button 
-                    className="remove-file-btn" 
-                    onClick={handleRemoveFile}
-                    type="button"
-                  >
-                    删除
-                  </button>
+    <div className="upload-form">
+      <div className="upload-content">
+        <div 
+          className={`upload-area ${isDragging ? 'dragging' : ''} ${filePreview ? 'has-preview' : ''}`}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {!filePreview ? (
+            <label className="upload-label">
+              <div className="upload-icon">📁</div>
+              <div className="upload-text">点击选择视频文件或拖放到此处</div>
+              <div className="upload-hint">支持的格式: MP4, AVI, MOV, WMV, FLV, MKV</div>
+              <input 
+                type="file" 
+                accept="video/*" 
+                onChange={handleFileChange} 
+                className="hidden-input"
+                ref={fileInputRef}
+              />
+            </label>
+          ) : (
+            <div className="file-preview">
+              <div className="file-preview-header">
+                <div className="file-info">
+                  <span className="file-name" title={fileName}>{fileName.length > 30 ? fileName.substring(0, 27) + '...' : fileName}</span>
                 </div>
-                <div className="video-preview-container">
-                  <video 
-                    src={filePreview} 
-                    className="video-preview" 
-                    controls
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <form onSubmit={handleUrlSubmit} className="url-form">
-            <div className="form-group">
-              <label htmlFor="video-url">视频URL</label>
-              <div className="url-input-group">
-                <input
-                  type="text"
-                  id="video-url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="输入视频URL"
-                  className="url-input"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="url-btn"
-                  disabled={isUrlLoading}
+                <button 
+                  className="remove-file-btn" 
+                  onClick={handleRemoveFile}
+                  type="button"
                 >
-                  {isUrlLoading ? (
-                    <>
-                      <span className="url-loading-indicator"></span>
-                      加载中...
-                    </>
-                  ) : '加载'}
+                  删除
                 </button>
               </div>
+              <div className="video-preview-container">
+                <video 
+                  src={filePreview} 
+                  className="video-preview" 
+                  controls
+                />
+              </div>
             </div>
-          </form>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="form-group extraction-options">

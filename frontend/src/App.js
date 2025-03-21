@@ -30,20 +30,6 @@ function App() {
     setError('');
   };
 
-  // 处理从URL加载视频
-  const handleVideoUrl = (url) => {
-    if (!url || !url.trim()) {
-      setError('请输入有效的视频URL');
-      return;
-    }
-    
-    console.log('设置视频URL:', url);
-    setVideoUrl(url);
-    setVideoFile(null);
-    setFrames([]);
-    setError('');
-  };
-
   // 提取帧
   const handleExtractFrames = async (options) => {
     setLoading(true);
@@ -77,19 +63,8 @@ function App() {
         
         const uploadResult = await uploadResponse.json();
         requestData.videoPath = uploadResult.videoPath || uploadResult.filename || videoFile.name;
-      } else if (videoUrl) {
-        // 使用视频URL
-        console.log('使用视频URL:', videoUrl);
-        
-        // 验证URL格式
-        try {
-          new URL(videoUrl); // 检查是否有效URL
-          requestData.videoUrl = videoUrl;
-        } catch (e) {
-          throw new Error('请输入有效的视频URL');
-        }
       } else {
-        throw new Error('请先上传视频或提供视频链接');
+        throw new Error('请先上传视频文件');
       }
       
       console.log('发送JSON请求数据:', requestData);
@@ -141,7 +116,12 @@ function App() {
       {/* 顶部导航栏 */}
       <div className="top-nav">
         <img src="images/cat-icon.png" alt="猫咪图标" className="nav-logo" />
-        <div className="nav-title">芝士猫万能工具箱</div>
+        <div className="nav-title">芝士猫工具箱</div>
+        <div className="nav-links">
+          <a href="https://y.cheesecatool.com/" className="nav-link">上传视频文件提取视频帧</a>
+          <a href="https://y.cheesecatool.com/url" className="nav-link">视频URL提取视频帧</a>
+          <a href="https://yt.cheesecatool.com/" className="nav-link">YOUTUBE视频数据分析</a>
+        </div>
       </div>
       
       <div className="container">
@@ -155,7 +135,6 @@ function App() {
         <div className="bg-white rounded-lg mb-8">
           <UploadForm 
             onVideoUpload={handleVideoUpload} 
-            onVideoUrl={handleVideoUrl}
             onExtractFrames={handleExtractFrames}
           />
         </div>
