@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-9YYZC8L91V"></script>
@@ -12,9 +12,9 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>芝士猫视频帧万能提取器</title>
+    <title>CheeseCat Video Frame Extractor</title>
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="视频帧提取工具 - 无损提取视频帧" />
+    <meta name="description" content="Video Frame Extraction Tool - Extract frames from videos" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
@@ -433,17 +433,17 @@
     </style>
   </head>
   <body>
-    <noscript>您需要启用JavaScript才能运行此应用。</noscript>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     
     <div id="root"></div>
     
     <div id="static-app" style="display:none;">
         <div class="top-nav">
-            <img src="images/cat-icon.png" alt="芝士猫" class="nav-logo">
-            <div class="nav-title">芝士猫工具箱</div>
+            <img src="images/cat-icon.png" alt="CheeseCat" class="nav-logo">
+            <div class="nav-title">CheeseCat Toolbox</div>
             <div class="nav-links">
-                <a href="https://y.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">上传视频文件提取视频帧</a>
-                <a href="https://yt.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">YOUTUBE视频数据分析</a>
+                <a href="https://y.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">Extract Video Frames</a>
+                <a href="https://yt.cheesecatool.com/" class="nav-link" target="_blank" rel="noopener noreferrer">YOUTUBE Video Data Analysis</a>
             </div>
             <div class="language-selector">
                 <button class="language-btn" onclick="toggleLanguageMenu()" aria-label="Select language">
@@ -486,8 +486,8 @@
         
         <div class="container">
             <div class="title-with-icon">
-                <img src="images/cat-icon.png" alt="芝士猫" class="cat-icon">
-                <h1>芝士猫视频帧万能提取器</h1>
+                <img src="images/cat-icon.png" alt="CheeseCat" class="cat-icon">
+                <h1>CheeseCat Video Frame Extractor</h1>
             </div>
             
             <div id="message-area" class="flash-messages"></div>
@@ -495,28 +495,28 @@
             <form id="extract-form" enctype="multipart/form-data">
                 <div class="upload-area" id="upload-area">
                     <div class="upload-icon">📁</div>
-                    <h3>点击选择视频文件或拖放到此处</h3>
-                    <p>支持的格式: MP4, AVI, MOV, WMV, FLV, MKV</p>
+                    <h3>Upload or drop a video file here</h3>
+                    <p>Supported formats: MP4, AVI, MOV, WMV, FLV, MKV</p>
                     <input type="file" name="video" id="video-input" accept=".mp4,.avi,.mov,.mkv,.wmv,.flv" style="display: none;">
                     <div id="file-name" style="margin-top: 10px; font-weight: bold;"></div>
                 </div>
                 
                 <div class="param-group">
                     <div class="form-group">
-                        <label for="fps">帧率 (FPS)</label>
+                        <label for="fps">Frame Rate (FPS)</label>
                         <select name="fps" id="fps">
-                            <option value="0.5">0.5 (每2秒1帧)</option>
-                            <option value="1" selected>1 (每秒1帧)</option>
-                            <option value="2">2 (每秒2帧)</option>
-                            <option value="5">5 (每秒5帧)</option>
-                            <option value="10">10 (每秒10帧)</option>
-                            <option value="15">15 (每秒15帧)</option>
-                            <option value="30">30 (每秒30帧)</option>
+                            <option value="0.5">0.5 (1 frame per 2 seconds)</option>
+                            <option value="1" selected>1 (1 frame per second)</option>
+                            <option value="2">2 (2 frames per second)</option>
+                            <option value="5">5 (5 frames per second)</option>
+                            <option value="10">10 (10 frames per second)</option>
+                            <option value="15">15 (15 frames per second)</option>
+                            <option value="30">30 (30 frames per second)</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="format">图像格式</label>
+                        <label for="format">Image Format</label>
                         <select name="format" id="format">
                             <option value="jpg" selected>JPG</option>
                             <option value="png">PNG</option>
@@ -525,59 +525,58 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="quality">图像质量 <span id="quality-value" class="quality-display">90</span></label>
+                    <label for="quality">Image Quality <span id="quality-value" class="quality-display">90</span></label>
                     <input type="range" name="quality" id="quality" min="10" max="100" value="90">
                 </div>
                 
                 <div class="param-group">
                     <div class="form-group">
-                        <label for="start_time">开始时间 (秒, 可选)</label>
-                        <input type="number" name="start_time" id="start_time" min="0" step="0.1" placeholder="从视频开始">
+                        <label for="start_time">Start Time (seconds, optional)</label>
+                        <input type="number" name="start_time" id="start_time" min="0" step="0.1" placeholder="From video start">
                     </div>
                     
                     <div class="form-group">
-                        <label for="end_time">结束时间 (秒, 可选)</label>
-                        <input type="number" name="end_time" id="end_time" min="0" step="0.1" placeholder="到视频结束">
+                        <label for="end_time">End Time (seconds, optional)</label>
+                        <input type="number" name="end_time" id="end_time" min="0" step="0.1" placeholder="To video end">
                     </div>
                 </div>
                 
-                <button type="submit" id="extract-btn">提取视频帧</button>
+                <button type="submit" id="extract-btn">Extract Frames</button>
             </form>
             
             <div id="loading" class="loading">
                 <div class="spinner"></div>
-                <p>正在处理视频，请稍候...</p>
+                <p>Processing video, please wait...</p>
             </div>
             
-            <div id="results-section">
-                <h2>提取结果</h2>
-                
-                <div class="actions">
-                    <button id="back-to-form" class="btn">返回上传</button>
-                    <button id="download-selected-btn" class="btn">下载所有选中帧</button>
-                </div>
+            <div id="results-section" style="display: none;" class="results-section">
+                <h2>Extracted Frames</h2>
                 
                 <div class="select-actions">
-                    <button id="select-all-btn" class="btn-select-all">全选</button>
-                    <button id="deselect-all-btn" class="btn-select-all">取消全选</button>
+                    <button class="btn-select-all" id="select-all-btn">Select All</button>
+                    <button class="btn-select-all" id="deselect-all-btn">Deselect All</button>
+                    <button class="btn-select-all" id="download-selected-btn">Download Selected</button>
                 </div>
                 
-                <div id="frames-container" class="frames-container">
-                    <!-- 帧图像将在这里动态添加 -->
+                <div id="frames-container" class="frames-container"></div>
+                
+                <div class="actions">
+                    <a class="btn" id="download-all-btn">Download All Frames</a>
+                    <button class="btn" id="back-to-form-btn">Back to Form</button>
                 </div>
             </div>
             
             <footer>
-                <p>芝士猫视频帧万能提取工具 &copy; 2025，欢迎建议与反馈：imluluj8@outlook.com</p>
+                <p>CheeseCat Video Frame Extractor &copy; 2025, for feedback: imluluj8@outlook.com</p>
             </footer>
         </div>
         
-        <div class="image-modal" id="image-modal">
+        <div id="image-modal" class="image-modal">
             <span class="close-modal" onclick="closeModal()">&times;</span>
+            <img id="modal-image" class="modal-content">
             <div class="nav-btn prev-btn" id="prev-btn">&lt;</div>
             <div class="nav-btn next-btn" id="next-btn">&gt;</div>
-            <img class="modal-content" id="modal-image">
-            <div class="image-counter" id="image-counter">1/10</div>
+            <div class="image-counter" id="image-counter"></div>
         </div>
     </div>
     
@@ -648,7 +647,7 @@
             const resultsSection = document.getElementById('results-section');
             const framesContainer = document.getElementById('frames-container');
             const messageArea = document.getElementById('message-area');
-            const backToFormBtn = document.getElementById('back-to-form');
+            const backToFormBtn = document.getElementById('back-to-form-btn');
             const downloadAllBtn = document.getElementById('download-selected-btn');
             
             extractForm.addEventListener('submit', function(e) {

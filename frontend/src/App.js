@@ -3,7 +3,6 @@ import './App.css';
 import UploadForm from './components/UploadForm';
 import FrameGallery from './components/FrameGallery';
 import Footer from './components/Footer';
-import ErrorHandler from './components/ErrorHandler';
 
 // 使用环境变量或默认值
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
@@ -69,33 +68,31 @@ function App() {
   const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [errorType, setErrorType] = useState('general');
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'en'); // 使用本地存储保存语言选择
+  
+  // 使用 'en' 作为默认语言，仅当本地存储中有值时才使用本地存储的值
+  const [language, setLanguage] = useState(() => {
+    const savedLanguage = localStorage.getItem('language');
+    return savedLanguage || 'en';
+  });
+  
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  // 确保在组件加载时将语言设置为英文（如果未设置）
+  useEffect(() => {
+    if (!localStorage.getItem('language')) {
+      localStorage.setItem('language', 'en');
+    }
+  }, []);
 
   // 获取翻译文本
   const getText = (key) => {
     return (TRANSLATIONS[language] && TRANSLATIONS[language][key]) || TRANSLATIONS.en[key];
   };
 
-  // 网络状态监听
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
   // 处理上传的视频文件
   const handleVideoUpload = (file) => {
     setVideoFile(file);
+    setFrames([]);
     setError('');
   };
 
@@ -118,108 +115,89 @@ function App() {
     return LANGUAGES.find(lang => lang.code === language) || LANGUAGES[0];
   };
 
-  // 处理提取帧
+  // 提取帧
   const handleExtractFrames = async (options) => {
-    if (!videoFile) {
-      setError('请先上传视频文件');
-      setErrorType('upload');
-      return;
-    }
-    
-    if (!isOnline) {
-      setError('您当前处于离线状态，无法连接到服务器');
-      setErrorType('network');
-      return;
-    }
-
     setLoading(true);
     setError('');
-    setFrames([]);
-
-    const formData = new FormData();
-    formData.append('video', videoFile);
-    formData.append('fps', options.fps);
-    formData.append('quality', options.quality);
-    formData.append('format', options.format);
     
-    if (options.startTime) {
-      formData.append('start_time', options.startTime);
-    }
-    
-    if (options.endTime) {
-      formData.append('end_time', options.endTime);
-    }
-
     try {
-      console.log('提取参数:', options);
+      console.log('提取选项:', options);
       
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/upload-video`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        let errorMessage = `上传视频失败: ${response.status}`;
+      let requestData = {
+        fps: parseFloat(options.fps) || 1,
+        quality: parseInt(options.quality) || 90,
+        format: options.format || 'jpg',
+        startTime: options.startTime ? parseFloat(options.startTime) : null,
+        endTime: options.endTime ? parseFloat(options.endTime) : null
+      };
+      
+      if (videoFile) {
+        // 如果是文件上传，先上传文件
+        const uploadFormData = new FormData();
+        uploadFormData.append('video', videoFile);
+        console.log('上传文件:', videoFile.name, videoFile.size);
         
+        const uploadResponse = await fetch(`${API_URL}/api/upload-video`, {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error(`上传视频失败: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        requestData.videoPath = uploadResult.videoPath || uploadResult.filename || videoFile.name;
+      } else {
+        throw new Error('请先上传视频文件');
+      }
+      
+      console.log('发送JSON请求数据:', requestData);
+      
+      // 修改API请求路径为正确的端点
+      const apiUrl = `${API_URL}/api/extract-frames`;
+      console.log('发送请求到:', apiUrl);
+      
+      // 发送到后端API，使用JSON格式
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+      
+      console.log('服务器响应状态:', response.status);
+      
+      if (!response.ok) {
+        let errorMessage;
         try {
           const errorData = await response.json();
-          if (errorData.error) {
-            errorMessage = errorData.error;
-          }
+          errorMessage = errorData.message || errorData.error || `请求失败 (${response.status}): ${response.statusText}`;
         } catch (e) {
-          console.error('解析错误响应失败:', e);
+          errorMessage = `请求失败 (${response.status}): ${response.statusText}`;
         }
-        
-        // 根据错误码设置错误类型
-        if (response.status >= 500) {
-          setErrorType('server');
-        } else if (response.status === 413) {
-          setErrorType('upload');
-          errorMessage = '视频文件太大，超过服务器限制';
-        } else if (response.status === 415) {
-          setErrorType('upload');
-          errorMessage = '不支持的视频格式';
-        } else {
-          setErrorType('extract');
-        }
-        
         throw new Error(errorMessage);
       }
-
-      const data = await response.json();
-      console.log('提取结果:', data);
       
-      if (data.frames && Array.isArray(data.frames)) {
-        // 预加载图片
-        setFrames(data.frames);
-      } else {
-        throw new Error('提取视频帧失败: 服务器返回无效数据');
+      const data = await response.json();
+      console.log('服务器响应数据:', data);
+      
+      if (!data.frames || !Array.isArray(data.frames)) {
+        throw new Error('服务器返回数据格式错误');
       }
+      setFrames(data.frames);
     } catch (err) {
-      console.error('提取帧错误:', err);
-      setError(err.message || '提取视频帧失败');
+      console.error('提取帧时出错:', err);
+      // 显示更详细的错误信息
+      setError(`处理错误: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // 重试上传和提取
-  const handleRetry = () => {
-    setError('');
-    setErrorType('general');
-    if (videoFile) {
-      setVideoFile(null);
-    }
-  };
-
   return (
     <div className="App">
-      {!isOnline && (
-        <div className="offline-notice">
-          您当前处于离线状态，部分功能可能不可用
-        </div>
-      )}
-      
       {/* 顶部导航栏 */}
       <div className="top-nav">
         <img src="images/cat-icon.png" alt="猫咪图标" className="nav-logo" />
@@ -266,16 +244,6 @@ function App() {
           <h1 className="text-3xl font-bold">{getText('title')}</h1>
         </div>
         
-        {/* 错误显示区域 */}
-        {error && (
-          <ErrorHandler 
-            error={error} 
-            type={errorType} 
-            onRetry={handleRetry}
-            showDetails={true}
-          />
-        )}
-        
         {/* 表单区域 */}
         <div className="bg-white rounded-lg mb-8">
           <UploadForm 
@@ -283,9 +251,14 @@ function App() {
             onExtractFrames={handleExtractFrames}
             language={language}
             translations={TRANSLATIONS}
-            disabled={!isOnline || loading}
           />
         </div>
+        
+        {error && (
+          <div className="flash-message">
+            {error}
+          </div>
+        )}
         
         {loading && (
           <div className="loading" style={{display: 'block'}}>

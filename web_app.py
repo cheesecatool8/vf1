@@ -1,129 +1,130 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response, send_file
-from flask_cors import CORS
-from werkzeug.utils import secure_filename
 import os
-import uuid
-from extract_frames import extract_frames
-import logging
-from r2_storage import R2Storage
-from r2_lifecycle import R2Lifecycle
-from config import (
-    ALLOWED_EXTENSIONS,
-    MAX_CONTENT_LENGTH,
-    CORS_ORIGINS,
-    DEFAULT_QUALITY,
-    DEFAULT_FPS,
-    DEFAULT_FORMAT
-)
-import mimetypes
-from functools import wraps
 import time
-import threading
-import requests
-import tempfile
 import json
-from dateutil import parser
-import cv2
-
-# 配置日志
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+import requests
+import logging
+from functools import wraps
+from flask import Flask, request, jsonify, send_file, redirect
+from werkzeug.utils import secure_filename
+from extract_frames import extract_frames
+from r2_storage import R2Storage
 
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'video_frame_extractor_secret_key')
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['FRAMES_FOLDER'] = 'frames'
-app.config['FRAMES_BASE_URL'] = os.environ.get('FRAMES_BASE_URL', 'https://storage.y.cheesecatool.com')
-app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB
 
-# 配置 CORS
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# 确保上传目录和帧目录存在
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['FRAMES_FOLDER'], exist_ok=True)
+# 从config模块导入配置
+try:
+    from config import (
+        SECRET_KEY, 
+        UPLOAD_FOLDER, 
+        FRAMES_FOLDER, 
+        ALLOWED_EXTENSIONS,
+        MAX_CONTENT_LENGTH,
+        FRAMES_BASE_URL,
+        CORS_ORIGINS
+    )
+    logger.info("从config.py加载配置成功")
+except ImportError as e:
+    logger.warning(f"无法导入配置模块: {str(e)}，使用默认配置")
+    # 默认配置
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'default_secret_key')
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
+    FRAMES_FOLDER = os.environ.get('FRAMES_FOLDER', 'frames')
+    ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv'}
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 500 * 1024 * 1024))  # 500MB
+    FRAMES_BASE_URL = os.environ.get('FRAMES_BASE_URL', '')
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
 
-# 初始化 R2 存储和生命周期管理
+# 设置Flask应用配置
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['FRAMES_FOLDER'] = FRAMES_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+app.config['FRAMES_BASE_URL'] = FRAMES_BASE_URL
+
+# 初始化R2存储
 r2_storage = R2Storage()
-r2_lifecycle = R2Lifecycle(r2_storage)
 
-def cleanup_task():
-    """定时清理任务"""
-    while True:
-        try:
-            deleted_count = r2_lifecycle.cleanup_expired_files()
-            if deleted_count > 0:
-                logger.info(f"已清理 {deleted_count} 个过期文件")
-            time.sleep(3600)  # 每1小时检查一次
-        except Exception as e:
-            logger.error(f"清理任务出错: {str(e)}")
-            time.sleep(60)  # 出错后等待1分钟再试
+# 确保上传和帧目录存在
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(FRAMES_FOLDER, exist_ok=True)
 
-# 启动清理线程
-cleanup_thread = threading.Thread(target=cleanup_task, daemon=True)
-cleanup_thread.start()
+# CORS支持
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin')
+    
+    # 如果没有Origin头或CORS_ORIGINS为*，则允许所有
+    if CORS_ORIGINS == ['*']:
+        response.headers.add('Access-Control-Allow-Origin', '*')
+    elif origin and origin in CORS_ORIGINS:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
-# 速率限制装饰器
-def rate_limit(limit=10, per=60):
-    def decorator(f):
-        requests = {}
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            now = time.time()
-            ip = request.remote_addr
-            
-            # 清理过期的请求记录
-            requests[ip] = [t for t in requests.get(ip, []) if now - t < per]
-            
-            if len(requests.get(ip, [])) >= limit:
-                return jsonify({'error': '请求过于频繁，请稍后再试'}), 429
-            
-            requests.setdefault(ip, []).append(now)
-            return f(*args, **kwargs)
-        return wrapped
-    return decorator
-
+# 检查文件扩展名是否允许
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# 主页
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return jsonify({
+        'message': 'Video Frame Extractor API',
+        'version': '1.0',
+        'endpoints': [
+            '/api/extract-frames',
+            '/api/upload-video',
+            '/frames/<folder_name>',
+            '/download/<folder_name>/<filename>',
+            '/api/get-frame-image'
+        ]
+    })
 
+# 上传视频
 @app.route('/api/upload-video', methods=['POST'])
 def upload_video():
     """处理视频上传请求"""
     try:
         if 'video' not in request.files:
-            return jsonify({'error': '没有找到视频文件'}), 400
+            return jsonify({'error': '未找到视频文件'}), 400
             
         file = request.files['video']
+        
         if file.filename == '':
             return jsonify({'error': '未选择文件'}), 400
             
-        if file:
-            # 生成安全的文件名
+        if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            # 确保上传目录存在
-            if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                os.makedirs(app.config['UPLOAD_FOLDER'])
-                
-            # 保存文件
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
-            app.logger.info(f"成功上传视频: {filename}")
+            # 添加时间戳，避免文件名冲突
+            timestamp = int(time.time())
+            filename = f"{timestamp}_{filename}"
+            
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
             
             return jsonify({
                 'success': True,
-                'message': '视频上传成功',
                 'filename': filename,
-                'videoPath': filename
+                'path': filepath,
+                'size': os.path.getsize(filepath)
             })
-            
+        else:
+            return jsonify({'error': '不支持的文件类型'}), 400
     except Exception as e:
-        app.logger.error(f"上传视频时出错: {str(e)}", exc_info=True)
+        logger.error(f"上传视频时出错: {str(e)}", exc_info=True)
         return jsonify({'error': f'上传视频失败: {str(e)}'}), 500
 
+# 提取帧
 @app.route('/api/extract-frames', methods=['POST'])
 def extract_frames_api():
     """处理视频帧提取请求"""
@@ -194,11 +195,11 @@ def extract_frames_api():
                 except Exception as e:
                     logger.error(f"下载视频时出错: {str(e)}", exc_info=True)
                     return jsonify({'error': f'下载视频失败: {str(e)}'}), 500
+            else:
+                # 确保使用相对路径或完整路径
+                if not os.path.isabs(video_path):
+                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_path)
             
-            # 确保使用相对路径或完整路径
-            if not os.path.isabs(video_path):
-                video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_path)
-                
             # 检查视频文件是否存在
             if not os.path.exists(video_path):
                 logger.error(f"视频文件不存在: {video_path}")
@@ -348,147 +349,52 @@ def proxy_image():
         return jsonify({"error": "Missing URL parameter"}), 400
     
     try:
-        # 转发请求到存储服务
         response = requests.get(url, stream=True)
+        if response.status_code != 200:
+            return jsonify({"error": f"Failed to fetch image: {response.status_code}"}), response.status_code
         
-        # 创建Flask响应对象
-        proxy_response = Response(
-            response.iter_content(chunk_size=1024),
-            content_type=response.headers.get('content-type', 'image/jpeg')
+        return send_file(
+            response.raw,
+            mimetype=response.headers.get('content-type', 'image/jpeg'),
+            as_attachment=False,
+            download_name=url.split('/')[-1]
         )
-        
-        # 设置响应头
-        proxy_response.headers.set('Access-Control-Allow-Origin', '*')
-        return proxy_response
-    
     except Exception as e:
-        app.logger.error(f"代理图片请求失败: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"代理图片请求失败: {str(e)}")
+        return jsonify({"error": f"Failed to proxy image: {str(e)}"}), 500
 
-@app.route('/api/frame-image/<path:filepath>')
-def get_frame_image(filepath):
-    """直接从存储获取帧图片，避免CORS和404问题"""
+@app.route('/api/get-frame-image')
+def get_frame_image():
+    """获取帧图片，通过R2存储直接获取"""
+    filepath = request.args.get('filepath')
+    if not filepath:
+        return jsonify({"error": "Missing filepath parameter"}), 400
+    
     try:
-        # 构造完整的对象路径
-        object_name = f"frames/{filepath}"
-        logger.info(f"请求获取帧图片: {object_name}")
+        logger.info(f"请求帧图片: {filepath}")
         
-        # 从R2存储获取图片内容
-        image_data = r2_storage.get_file(object_name)
+        # 从R2存储获取文件内容
+        file_content = r2_storage.get_file(filepath)
+        if not file_content:
+            logger.warning(f"未找到帧图片: {filepath}")
+            return jsonify({"error": "Frame image not found"}), 404
         
-        if image_data:
-            # 确定正确的MIME类型
-            content_type = 'image/jpeg'
-            if filepath.lower().endswith('.png'):
-                content_type = 'image/png'
-            elif filepath.lower().endswith('.webp'):
-                content_type = 'image/webp'
+        # 确定内容类型
+        content_type = 'image/jpeg'  # 默认
+        if filepath.endswith('.png'):
+            content_type = 'image/png'
             
-            # 创建响应
-            response = Response(image_data, content_type=content_type)
-            response.headers.set('Access-Control-Allow-Origin', '*')
-            response.headers.set('Cache-Control', 'public, max-age=31536000')
-            return response
-        else:
-            logger.error(f"帧图片不存在: {object_name}")
-            return jsonify({"error": "图片不存在"}), 404
-            
+        return send_file(
+            file_content,
+            mimetype=content_type,
+            as_attachment=False,
+            download_name=os.path.basename(filepath)
+        )
     except Exception as e:
         logger.error(f"获取帧图片失败: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Failed to get frame image: {str(e)}"}), 500
 
-# 配置静态文件路由 - 允许直接访问提取的帧
-@app.route('/frames/<path:filepath>')
-def serve_frames(filepath):
-    """提供对提取的帧的访问"""
-    return send_file(os.path.join(app.config['FRAMES_FOLDER'], filepath))
-
-def extract_frames(video_path, output_dir, fps=1, start_time=None, end_time=None, format='jpg', quality=80):
-    """从视频中提取帧"""
-    try:
-        logger.info(f"正在初始化视频捕获: {video_path}")
-        
-        # 检查视频文件是否存在
-        if not os.path.exists(video_path):
-            logger.error(f"视频文件不存在: {video_path}")
-            raise FileNotFoundError(f"视频文件不存在: {video_path}")
-            
-        # 检查文件大小
-        file_size = os.path.getsize(video_path)
-        if file_size == 0:
-            logger.error(f"视频文件为空: {video_path}")
-            raise ValueError(f"视频文件为空: {video_path}")
-            
-        logger.info(f"视频文件大小: {file_size} 字节")
-        
-        # 尝试打开视频文件
-        cap = cv2.VideoCapture(video_path)
-        if not cap.isOpened():
-            logger.error(f"无法打开视频文件: {video_path}")
-            raise ValueError(f"无法打开视频文件: {video_path}")
-            
-        # 获取视频信息
-        video_fps = cap.get(cv2.CAP_PROP_FPS)
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        duration = total_frames / video_fps if video_fps else 0
-        
-        logger.info(f"视频信息: FPS={video_fps}, 总帧数={total_frames}, 时长={duration:.2f}秒")
-        
-        # 计算采样间隔
-        sample_rate = int(video_fps / fps) if fps > 0 else 1
-        logger.info(f"采样间隔: 每{sample_rate}帧提取一帧")
-        
-        # 处理开始和结束时间
-        start_frame = 0
-        end_frame = total_frames
-        
-        if start_time is not None and start_time > 0:
-            start_frame = int(start_time * video_fps)
-            logger.info(f"设置开始时间: {start_time}秒, 起始帧={start_frame}")
-            
-        if end_time is not None and end_time > 0:
-            end_frame = min(int(end_time * video_fps), total_frames)
-            logger.info(f"设置结束时间: {end_time}秒, 结束帧={end_frame}")
-            
-        # 确保输出目录存在
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # 提取帧
-        frame_count = 0
-        for frame_id in range(start_frame, end_frame, sample_rate):
-            # 设置帧位置
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
-            
-            ret, frame = cap.read()
-            if not ret:
-                logger.warning(f"无法读取帧 {frame_id}, 跳过")
-                continue
-                
-            # 构建输出文件路径
-            output_path = os.path.join(output_dir, f"frame_{frame_count:04d}.{format}")
-            
-            # 根据格式保存图像
-            if format.lower() == 'jpg' or format.lower() == 'jpeg':
-                cv2.imwrite(output_path, frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
-            elif format.lower() == 'png':
-                cv2.imwrite(output_path, frame, [cv2.IMWRITE_PNG_COMPRESSION, min(9, max(0, 10 - quality // 10))])
-            else:
-                cv2.imwrite(output_path, frame)
-                
-            frame_count += 1
-            
-            # 每提取10帧打印一次日志
-            if frame_count % 10 == 0:
-                logger.info(f"已提取 {frame_count} 帧")
-                
-        cap.release()
-        logger.info(f"提取完成, 总共提取了 {frame_count} 帧")
-        
-        return frame_count
-    except Exception as e:
-        logger.error(f"提取帧时出错: {str(e)}", exc_info=True)
-        raise
-
+# 启动服务器
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=os.getenv('DEBUG', 'False').lower() == 'true') 
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port) 
