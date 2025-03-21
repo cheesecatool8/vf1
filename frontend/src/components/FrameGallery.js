@@ -411,7 +411,7 @@ function FrameGallery({ frames, language, translations }) {
       {frames.length > 0 && (
         <div className="ssl-error-notice">
           <span className="icon">⚠️</span>
-          如果图片无法加载，请点击浏览器地址栏右侧"不安全"按钮，允许加载不安全内容
+          {getText('sslErrorNotice')}
         </div>
       )}
       
@@ -423,17 +423,17 @@ function FrameGallery({ frames, language, translations }) {
             className={`batch-toggle ${isSelecting ? 'active' : ''}`}
             type="button"
           >
-            {isSelecting ? '完成选择' : '批量选择'}
+            {isSelecting ? getText('finishSelection') : getText('batchSelection')}
           </button>
           
           {isSelecting && (
             <div className="batch-controls">
-              <button onClick={selectAllFrames} type="button">全选</button>
-              <button onClick={deselectAllFrames} type="button">取消选择</button>
+              <button onClick={selectAllFrames} type="button">{getText('selectAll')}</button>
+              <button onClick={deselectAllFrames} type="button">{getText('deselectAll')}</button>
               <button onClick={() => downloadSelectedFrames()} 
                       disabled={selectedFrames.length === 0}
                       type="button">
-                下载选中 ({selectedFrames.length})
+                {getText('downloadSelected')} ({selectedFrames.length})
               </button>
             </div>
           )}
@@ -448,14 +448,14 @@ function FrameGallery({ frames, language, translations }) {
             className={`view-button ${viewMode === 'grid' ? 'active' : ''}`}
             type="button"
           >
-            网格查看
+            {getText('gridView')}
           </button>
           <button
             onClick={() => setViewMode('list')}
             className={`view-button ${viewMode === 'list' ? 'active' : ''}`}
             type="button"
           >
-            列表查看
+            {getText('listView')}
           </button>
         </div>
       )}
@@ -469,7 +469,7 @@ function FrameGallery({ frames, language, translations }) {
               style={{ width: `${preloadProgress}%` }}
             ></div>
           </div>
-          <div className="progress-text">加载图片中... {preloadProgress}%</div>
+          <div className="progress-text">{getText('loadingImages')} {preloadProgress}%</div>
         </div>
       )}
       
@@ -538,10 +538,10 @@ function FrameGallery({ frames, language, translations }) {
                     className="table-select-all"
                   />
                 </th>
-                <th>预览</th>
-                <th>帧</th>
-                <th>格式</th>
-                <th>操作</th>
+                <th>{getText('preview')}</th>
+                <th>{getText('frame')}</th>
+                <th>{getText('format')}</th>
+                <th>{getText('actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -569,7 +569,7 @@ function FrameGallery({ frames, language, translations }) {
                         e.stopPropagation();
                         openLightbox(frame, index);
                       }}
-                      title="点击查看大图"
+                      title={getText('clickToView')}
                       onError={(e) => handleImageError(e, frame.url)}
                     />
                   </td>
@@ -600,7 +600,7 @@ function FrameGallery({ frames, language, translations }) {
           <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
             <button className="lightbox-close" onClick={closeLightbox} type="button">×</button>
             
-            <button className="lightbox-nav lightbox-prev" onClick={viewPrevImage} title="上一张图片" type="button">
+            <button className="lightbox-nav lightbox-prev" onClick={viewPrevImage} title={getText('previousImage')} type="button">
               &#10094;
             </button>
             
@@ -611,7 +611,7 @@ function FrameGallery({ frames, language, translations }) {
               onError={(e) => handleImageError(e, currentFrame)}
             />
             
-            <button className="lightbox-nav lightbox-next" onClick={viewNextImage} title="下一张图片" type="button">
+            <button className="lightbox-nav lightbox-next" onClick={viewNextImage} title={getText('nextImage')} type="button">
               &#10095;
             </button>
             
@@ -626,7 +626,7 @@ function FrameGallery({ frames, language, translations }) {
                     checked={selectedFrames.includes(frames.findIndex(frame => frame.url === currentFrame))}
                     onChange={() => toggleFrameSelection(frames.findIndex(frame => frame.url === currentFrame))}
                   />
-                  选择
+                  {getText('select')}
                 </label>
                 <button 
                   className="lightbox-download-btn" 

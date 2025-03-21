@@ -14,6 +14,8 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
   const videoInputRef = useRef(null);
   const uploadAreaRef = useRef(null);
   const videoRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
 
   // 获取翻译文本
   const getText = (key) => {
@@ -102,67 +104,50 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
     ];
   };
 
-  // 点击上传区域触发文件选择
-  const handleAreaClick = () => {
-    if (!videoFile && videoInputRef.current) {
-      videoInputRef.current.click();
+  // 处理文件选择或拖拽
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && (file.type.startsWith('video/') || file.name.match(/\.(mp4|webm|mov|avi|mkv)$/i))) {
+      onVideoUpload(file);
+    } else {
+      alert(getText('invalidVideoFile'));
     }
   };
 
-  // 处理文件选择
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      processFile(file);
-    }
+  // 处理拖拽事件
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
   };
 
-  // 拖拽事件
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
-    setDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragging(false);
+    e.stopPropagation();
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    setDragging(false);
+    e.stopPropagation();
+    setIsDragging(false);
     
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('video/')) {
-        processFile(file);
-      } else {
-        alert('请上传视频文件');
-      }
+    const file = e.dataTransfer.files[0];
+    if (file && (file.type.startsWith('video/') || file.name.match(/\.(mp4|webm|mov|avi|mkv)$/i))) {
+      onVideoUpload(file);
+    } else {
+      alert(getText('invalidVideoFile'));
     }
   };
 
-  // 处理上传的文件
-  const processFile = (file) => {
-    setVideoFile(file);
-    onVideoUpload(file);
-    
-    // 创建预览URL
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-    
-    // 在组件卸载时清理URL
-    return () => URL.revokeObjectURL(objectUrl);
-  };
-
-  // 移除已选择的文件
-  const removeFile = () => {
-    setVideoFile(null);
-    setPreviewUrl(null);
-    setVideoDuration(0);
-    setEstimatedFrameCount(0);
-    if (videoInputRef.current) {
-      videoInputRef.current.value = '';
-    }
+  // 点击上传区域触发文件选择
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
   };
 
   // 当视频加载时获取持续时间
@@ -225,25 +210,30 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
     <form onSubmit={handleSubmit}>
       <div 
         ref={uploadAreaRef}
-        className={`upload-area ${dragging ? 'dragging' : ''} ${videoFile ? 'has-preview' : ''}`}
-        onClick={handleAreaClick}
-        onDragOver={handleDragOver}
+        className={`upload-area ${isDragging ? 'dragging' : ''} ${videoFile ? 'has-preview' : ''}`}
+        onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
         onDrop={handleDrop}
+        onClick={handleUploadClick}
       >
         {!videoFile ? (
           <div className="upload-label">
             <div className="upload-icon">
-              <img src="images/upload-icon.png" alt="uoload" style={{width: '64px', height: '64px', margin: '0 auto'}} />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
             </div>
-            <div className="upload-text">{getText('uploadTitle')}</div>
-            <div className="upload-hint">{getText('supportedFormats')}</div>
+            <div className="upload-text">
+              <p>{getText('dragDropText')}</p>
+              <p className="upload-format">{getText('supportedFormats')}</p>
+            </div>
             <input 
               type="file" 
-              className="hidden-input" 
-              accept="video/*" 
-              onChange={handleFileChange}
-              ref={videoInputRef}
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              accept="video/*,.mp4,.webm,.mov,.avi,.mkv"
+              style={{ display: 'none' }}
             />
           </div>
         ) : (
@@ -258,7 +248,13 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
                 className="remove-file-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  removeFile();
+                  setVideoFile(null);
+                  setPreviewUrl(null);
+                  setVideoDuration(0);
+                  setEstimatedFrameCount(0);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
                 }}
               >
                 移除

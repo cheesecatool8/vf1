@@ -3,6 +3,8 @@ import './App.css';
 import UploadForm from './components/UploadForm';
 import FrameGallery from './components/FrameGallery';
 import Footer from './components/Footer';
+import VideoUpload from './components/VideoUpload';
+import translations from './translations';
 
 // 使用环境变量或默认值
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
@@ -271,8 +273,10 @@ console.log('环境变量:', {
 function App() {
   const [videoFile, setVideoFile] = useState(null);
   const [frames, setFrames] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(null);
   
   // 使用 'en' 作为默认语言，仅当本地存储中有值时才使用本地存储的值
   const [language, setLanguage] = useState(() => {
@@ -294,11 +298,55 @@ function App() {
     return (TRANSLATIONS[language] && TRANSLATIONS[language][key]) || TRANSLATIONS.en[key];
   };
 
-  // 处理上传的视频文件
+  // 处理视频上传
   const handleVideoUpload = (file) => {
     setVideoFile(file);
-    setFrames([]);
-    setError('');
+    setCurrentStep(1);
+  };
+  
+  // 处理视频帧提取
+  const handleExtractFrames = async (options) => {
+    if (!videoFile) {
+      setError(getText('noVideoUploaded'));
+      return;
+    }
+    
+    setIsExtracting(true);
+    setProgress(0);
+    setError(null);
+    
+    try {
+      // 创建FormData对象发送文件
+      const formData = new FormData();
+      formData.append('video', videoFile);
+      formData.append('fps', options.fps || 1);
+      
+      console.log('上传视频:', videoFile);
+      console.log('设置FPS:', options.fps || 1);
+      
+      // 发送请求到API
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/extract-frames`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || getText('extractionFailed'));
+      }
+      
+      const result = await response.json();
+      console.log('服务器响应:', result);
+      
+      // 更新提取的帧
+      setFrames(result.frames || []);
+      setCurrentStep(2);
+    } catch (error) {
+      console.error('提取帧出错:', error);
+      setError(error.message);
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   // 切换语言菜单显示状态
@@ -318,87 +366,6 @@ function App() {
   // 获取当前语言信息
   const getCurrentLanguage = () => {
     return LANGUAGES.find(lang => lang.code === language) || LANGUAGES[0];
-  };
-
-  // 提取帧
-  const handleExtractFrames = async (options) => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      console.log('提取选项:', options);
-      
-      let requestData = {
-        fps: parseFloat(options.fps) || 1,
-        quality: parseInt(options.quality) || 90,
-        format: options.format || 'jpg',
-        startTime: options.startTime ? parseFloat(options.startTime) : null,
-        endTime: options.endTime ? parseFloat(options.endTime) : null
-      };
-      
-      if (videoFile) {
-        // 如果是文件上传，先上传文件
-        const uploadFormData = new FormData();
-        uploadFormData.append('video', videoFile);
-        console.log('上传文件:', videoFile.name, videoFile.size);
-        
-        const uploadResponse = await fetch(`${API_URL}/api/upload-video`, {
-          method: 'POST',
-          body: uploadFormData,
-        });
-        
-        if (!uploadResponse.ok) {
-          throw new Error(`上传视频失败: ${uploadResponse.status} ${uploadResponse.statusText}`);
-        }
-        
-        const uploadResult = await uploadResponse.json();
-        requestData.videoPath = uploadResult.videoPath || uploadResult.filename || videoFile.name;
-      } else {
-        throw new Error('请先上传视频文件');
-      }
-      
-      console.log('发送JSON请求数据:', requestData);
-      
-      // 修改API请求路径为正确的端点
-      const apiUrl = `${API_URL}/api/extract-frames`;
-      console.log('发送请求到:', apiUrl);
-      
-      // 发送到后端API，使用JSON格式
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-      
-      console.log('服务器响应状态:', response.status);
-      
-      if (!response.ok) {
-        let errorMessage;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || `请求失败 (${response.status}): ${response.statusText}`;
-        } catch (e) {
-          errorMessage = `请求失败 (${response.status}): ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
-      }
-      
-      const data = await response.json();
-      console.log('服务器响应数据:', data);
-      
-      if (!data.frames || !Array.isArray(data.frames)) {
-        throw new Error('服务器返回数据格式错误');
-      }
-      setFrames(data.frames);
-    } catch (err) {
-      console.error('提取帧时出错:', err);
-      // 显示更详细的错误信息
-      setError(`处理错误: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -443,41 +410,59 @@ function App() {
       </div>
       
       <div className="container">
-        {/* 标题与图标 */}
-        <div className="title-with-icon">
-          <img src="images/cat-icon.png" alt="猫咪图标" className="cat-icon" />
-          <h1 className="text-3xl font-bold">{getText('title')}</h1>
+        <div className="app-content">
+          <div className="title-section">
+            <img src="/logo.png" alt={getText('logoAlt')} className="logo-icon" />
+            <h1>{getText('pageTitle')}</h1>
+          </div>
+          
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+          
+          {/* 步骤1: 上传视频 */}
+          {currentStep === 0 && (
+            <UploadForm 
+              onVideoUpload={handleVideoUpload} 
+              getText={getText}
+            />
+          )}
+          
+          {/* 步骤2: 预览视频并提取帧 */}
+          {currentStep === 1 && videoFile && (
+            <VideoUpload 
+              videoFile={videoFile} 
+              onExtract={handleExtractFrames}
+              language={language}
+              translations={translations}
+            />
+          )}
+          
+          {/* 步骤3: 显示提取的帧 */}
+          {currentStep === 2 && frames.length > 0 && (
+            <FrameGallery 
+              frames={frames} 
+              getText={getText}
+            />
+          )}
+          
+          {isExtracting && (
+            <div className="loading-container">
+              <div className="spinner"></div>
+              <p>{getText('processing')}</p>
+              {progress > 0 && (
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-        
-        {/* 表单区域 */}
-        <div className="bg-white rounded-lg mb-8">
-          <UploadForm 
-            onVideoUpload={handleVideoUpload} 
-            onExtractFrames={handleExtractFrames}
-            language={language}
-            translations={TRANSLATIONS}
-          />
-        </div>
-        
-        {error && (
-          <div className="flash-message">
-            {error}
-          </div>
-        )}
-        
-        {loading && (
-          <div className="loading" style={{display: 'block'}}>
-            <div className="spinner"></div>
-            <p>{getText('processing')}</p>
-          </div>
-        )}
-        
-        {frames.length > 0 && (
-          <div id="results-section" style={{display: 'block'}}>
-            <h2 className="text-xl font-semibold mb-4">{getText('extractedFrames')}</h2>
-            <FrameGallery frames={frames} language={language} translations={TRANSLATIONS} />
-          </div>
-        )}
       </div>
       
       <Footer language={language} translations={TRANSLATIONS} />
