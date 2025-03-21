@@ -20,6 +20,88 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
     return (translations[language] && translations[language][key]) || translations.en[key];
   };
 
+  // 帧率选项翻译
+  const getFpsOptions = () => {
+    const fpsLabels = {
+      en: {
+        "0.5": "0.5 (1 frame per 2 seconds)",
+        "1": "1 (1 frame per second)",
+        "2": "2 (2 frames per second)",
+        "5": "5 (5 frames per second)",
+        "10": "10 (10 frames per second)",
+        "15": "15 (15 frames per second)",
+        "30": "30 (30 frames per second)"
+      },
+      zh: {
+        "0.5": "0.5 (每秒0.5帧)",
+        "1": "1 (每秒1帧)",
+        "2": "2 (每秒2帧)",
+        "5": "5 (每秒5帧)",
+        "10": "10 (每秒10帧)",
+        "15": "15 (每秒15帧)",
+        "30": "30 (每秒30帧)"
+      },
+      ja: {
+        "0.5": "0.5 (2秒間に1フレーム)",
+        "1": "1 (1秒間に1フレーム)",
+        "2": "2 (1秒間に2フレーム)",
+        "5": "5 (1秒間に5フレーム)",
+        "10": "10 (1秒間に10フレーム)",
+        "15": "15 (1秒間に15フレーム)",
+        "30": "30 (1秒間に30フレーム)"
+      },
+      ko: {
+        "0.5": "0.5 (2초당 1프레임)",
+        "1": "1 (1초당 1프레임)",
+        "2": "2 (1초당 2프레임)",
+        "5": "5 (1초당 5프레임)",
+        "10": "10 (1초당 10프레임)",
+        "15": "15 (1초당 15프레임)",
+        "30": "30 (1초당 30프레임)"
+      },
+      es: {
+        "0.5": "0.5 (1 fotograma cada 2 segundos)",
+        "1": "1 (1 fotograma por segundo)",
+        "2": "2 (2 fotogramas por segundo)",
+        "5": "5 (5 fotogramas por segundo)",
+        "10": "10 (10 fotogramas por segundo)",
+        "15": "15 (15 fotogramas por segundo)",
+        "30": "30 (30 fotogramas por segundo)"
+      },
+      fr: {
+        "0.5": "0.5 (1 image toutes les 2 secondes)",
+        "1": "1 (1 image par seconde)",
+        "2": "2 (2 images par seconde)",
+        "5": "5 (5 images par seconde)",
+        "10": "10 (10 images par seconde)",
+        "15": "15 (15 images par seconde)",
+        "30": "30 (30 images par seconde)"
+      },
+      de: {
+        "0.5": "0.5 (1 Frame alle 2 Sekunden)",
+        "1": "1 (1 Frame pro Sekunde)",
+        "2": "2 (2 Frames pro Sekunde)",
+        "5": "5 (5 Frames pro Sekunde)",
+        "10": "10 (10 Frames pro Sekunde)",
+        "15": "15 (15 Frames pro Sekunde)",
+        "30": "30 (30 Frames pro Sekunde)"
+      }
+    };
+    
+    // 如果没有当前语言的翻译，使用英文
+    const currentLabels = fpsLabels[language] || fpsLabels.en;
+    
+    return [
+      { value: 0.5, label: currentLabels["0.5"] },
+      { value: 1, label: currentLabels["1"] },
+      { value: 2, label: currentLabels["2"] },
+      { value: 5, label: currentLabels["5"] },
+      { value: 10, label: currentLabels["10"] },
+      { value: 15, label: currentLabels["15"] },
+      { value: 30, label: currentLabels["30"] }
+    ];
+  };
+
   // 点击上传区域触发文件选择
   const handleAreaClick = () => {
     if (!videoFile && videoInputRef.current) {
@@ -213,13 +295,11 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
             value={fps} 
             onChange={(e) => setFps(parseFloat(e.target.value))}
           >
-            <option value="0.5">0.5 (每2秒1帧)</option>
-            <option value="1">1 (每秒1帧)</option>
-            <option value="2">2 (每秒2帧)</option>
-            <option value="5">5 (每秒5帧)</option>
-            <option value="10">10 (每秒10帧)</option>
-            <option value="15">15 (每秒15帧)</option>
-            <option value="30">30 (每秒30帧)</option>
+            {getFpsOptions().map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
         
