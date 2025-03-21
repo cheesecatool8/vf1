@@ -24,10 +24,9 @@ function FrameGallery({ frames, language, translations }) {
 
   // 处理代理URL，解决CORS问题
   const getProxyUrl = (originalUrl) => {
-    // 检查URL是否包含任何已知的错误字符串
+    // 简化逻辑，直接返回storage worker URL
     if (originalUrl.includes('cheesecatool-backend.onrender.com')) {
       // 将后端onrender域名的URL转换为storage worker URL
-      console.log('将onrender URL转换为storage URL:', originalUrl);
       const pathParts = originalUrl.split('/frames/');
       if (pathParts.length > 1) {
         return `https://storage.y.cheesecatool.com/frames/${pathParts[1]}`;
@@ -36,21 +35,25 @@ function FrameGallery({ frames, language, translations }) {
     
     // 检查URL是否来自storage.y.cheesecatool.com
     if (originalUrl.includes('storage.y.cheesecatool.com')) {
-      // 直接返回原URL - 使用Worker URL直接访问
-      console.log('使用storage URL:', originalUrl);
       return originalUrl;
     }
     
     // 检查URL是否来自Cloudflare R2存储
     if (originalUrl.includes('cloudflarestorage.com') || originalUrl.includes('r2.dev')) {
-      // 重写为使用Worker URL
-      console.log('将R2 URL转换为storage URL:', originalUrl);
       const pathParts = originalUrl.split('/');
       const objectKey = pathParts.slice(pathParts.indexOf('cheesecatool') + 1).join('/');
       return `https://storage.y.cheesecatool.com/${objectKey}`;
     }
     
-    console.log('使用原始URL:', originalUrl);
+    // 尝试提取帧路径并使用storage worker URL
+    if (originalUrl.includes('/frames/')) {
+      const pathParts = originalUrl.split('/frames/');
+      if (pathParts.length > 1) {
+        return `https://storage.y.cheesecatool.com/frames/${pathParts[1]}`;
+      }
+    }
+    
+    // 如果无法确定，返回原始URL
     return originalUrl;
   };
 
@@ -91,20 +94,17 @@ function FrameGallery({ frames, language, translations }) {
         }
         
         const proxyUrl = getProxyUrl(frame.url);
-        console.log(`[${i+1}/${frames.length}] 正在加载图片:`, {
-          原始URL: frame.url,
-          代理URL: proxyUrl
-        });
+        
+        // 直接使用Storage URL作为备用
+        const storageUrl = `https://storage.y.cheesecatool.com/frames/${frame.url.split('/frames/').pop()}`;
         
         // 创建图片对象并预加载
         const img = new Image();
         const promise = new Promise((resolve, reject) => {
           img.onload = () => {
-            console.log(`✓ 图片加载成功: ${proxyUrl}`);
             resolve(frame.url);
           };
           img.onerror = (e) => {
-            console.error(`✗ 图片加载失败: ${proxyUrl}`, e);
             reject(new Error(`Failed to load image: ${proxyUrl}`));
           };
           // 添加时间戳防止缓存问题
@@ -115,21 +115,20 @@ function FrameGallery({ frames, language, translations }) {
           await promise;
           cache[frame.url] = true;
         } catch (error) {
-          console.error(`图片 ${i+1} 加载错误:`, error);
-          // 尝试使用备用方式获取图片
+          // 尝试使用备用URL
+          console.log(`尝试使用Storage URL加载图片 ${i+1}: ${storageUrl}`);
+          
           try {
-            console.log(`尝试使用备用方式加载图片 ${i+1}`);
-            const backupUrl = frame.url.replace('cheesecatool-backend.onrender.com', 'storage.y.cheesecatool.com');
             const backupImg = new Image();
             await new Promise((resolve, reject) => {
               backupImg.onload = resolve;
               backupImg.onerror = reject;
-              backupImg.src = backupUrl;
+              // 添加时间戳防止缓存问题
+              backupImg.src = `${storageUrl}${storageUrl.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
             });
-            console.log(`✓ 备用方式加载成功: ${backupUrl}`);
             cache[frame.url] = true;
           } catch (backupError) {
-            console.error(`备用方式加载失败:`, backupError);
+            console.error(`图片 ${i+1} 无法加载，跳过`);
           }
         }
         
@@ -138,7 +137,6 @@ function FrameGallery({ frames, language, translations }) {
       }
       
       setImageCache(cache);
-      console.log('图片预加载完成，成功加载:', Object.keys(cache).length);
     } catch (error) {
       console.error('预加载图片出错:', error);
     } finally {
@@ -388,21 +386,37 @@ function FrameGallery({ frames, language, translations }) {
   // 图片错误处理函数
   const handleImageError = (e, frameUrl) => {
     console.error('图片加载失败:', frameUrl);
-    // 显示默认的错误图片
-    e.target.src = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22100%25%22 height%3D%22100%25%22 viewBox%3D%220 0 100 100%22%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 text-anchor%3D%22middle%22 dominant-baseline%3D%22middle%22 font-family%3D%22sans-serif%22 font-size%3D%2210%22 fill%3D%22%23333%22%3E加载失败%3C%2Ftext%3E%3C%2Fsvg%3E';
+    
+    // 尝试使用storage URL
+    const storageUrl = frameUrl.includes('storage.y.cheesecatool.com') 
+      ? frameUrl 
+      : `https://storage.y.cheesecatool.com/frames/${frameUrl.split('/frames/').pop()}`;
+    
+    // 添加时间戳避免缓存问题
+    const timestamp = new Date().getTime();
+    const retryUrl = `${storageUrl}${storageUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
+    
+    console.log('尝试使用Storage URL重新加载:', retryUrl);
+    
+    // 首先显示错误状态
     e.target.classList.add('image-error');
     
-    // 尝试重新加载一次
-    setTimeout(() => {
-      const newSrc = frameUrl.replace('cheesecatool-backend.onrender.com', 'storage.y.cheesecatool.com');
-      console.log('尝试重新加载:', newSrc);
-      const tempImg = new Image();
-      tempImg.onload = () => {
-        e.target.src = newSrc;
-        e.target.classList.remove('image-error');
-      };
-      tempImg.src = newSrc;
-    }, 1000);
+    // 创建新图像对象尝试加载
+    const tempImg = new Image();
+    tempImg.onload = () => {
+      // 如果加载成功，更新原始图像
+      e.target.src = retryUrl;
+      e.target.classList.remove('image-error');
+      console.log('重新加载成功');
+    };
+    
+    tempImg.onerror = () => {
+      // 如果仍然失败，显示错误占位图
+      console.error('重新加载失败，显示占位图');
+      e.target.src = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22100%25%22 height%3D%22100%25%22 viewBox%3D%220 0 100 100%22%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 text-anchor%3D%22middle%22 dominant-baseline%3D%22middle%22 font-family%3D%22sans-serif%22 font-size%3D%2210%22 fill%3D%22%23333%22%3E加载失败%3C%2Ftext%3E%3C%2Fsvg%3E';
+    };
+    
+    tempImg.src = retryUrl;
   };
 
   return (
