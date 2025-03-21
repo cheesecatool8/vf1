@@ -32,6 +32,12 @@ function App() {
 
   // 处理从URL加载视频
   const handleVideoUrl = (url) => {
+    if (!url || !url.trim()) {
+      setError('请输入有效的视频URL');
+      return;
+    }
+    
+    console.log('设置视频URL:', url);
     setVideoUrl(url);
     setVideoFile(null);
     setFrames([]);
@@ -72,8 +78,16 @@ function App() {
         const uploadResult = await uploadResponse.json();
         requestData.videoPath = uploadResult.videoPath || uploadResult.filename || videoFile.name;
       } else if (videoUrl) {
-        requestData.videoUrl = videoUrl;
+        // 使用视频URL
         console.log('使用视频URL:', videoUrl);
+        
+        // 验证URL格式
+        try {
+          new URL(videoUrl); // 检查是否有效URL
+          requestData.videoUrl = videoUrl;
+        } catch (e) {
+          throw new Error('请输入有效的视频URL');
+        }
       } else {
         throw new Error('请先上传视频或提供视频链接');
       }

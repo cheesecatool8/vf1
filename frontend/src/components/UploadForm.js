@@ -6,6 +6,7 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
   const [filePreview, setFilePreview] = useState(null);
   const [fileName, setFileName] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isUrlLoading, setIsUrlLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [extractionOptions, setExtractionOptions] = useState({
     fps: 1,
@@ -81,13 +82,40 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
 
   const handleUrlSubmit = (e) => {
     e.preventDefault();
-    if (url.trim()) {
-      onVideoUrl(url);
-      // 自动跳转到提取选项区域
-      document.querySelector('.extraction-options').scrollIntoView({ 
-        behavior: 'smooth' 
-      });
+    
+    // 验证URL格式
+    const urlValue = url.trim();
+    if (!urlValue) {
+      alert('请输入视频URL');
+      return;
     }
+    
+    // 简单URL格式验证
+    if (!urlValue.startsWith('http://') && !urlValue.startsWith('https://')) {
+      alert('请输入有效的网址 (以http://或https://开头)');
+      return;
+    }
+    
+    // 视频URL格式验证，支持常见视频网站和直接视频链接
+    const videoUrlPattern = /\.(mp4|avi|mov|wmv|flv|mkv)($|\?)|youtube\.com\/|youtu\.be\/|vimeo\.com\//i;
+    if (!videoUrlPattern.test(urlValue)) {
+      if (!window.confirm('URL可能不是标准视频格式，是否继续?')) {
+        return;
+      }
+    }
+    
+    setIsUrlLoading(true);
+    
+    // 通知父组件处理URL
+    onVideoUrl(urlValue);
+    
+    // 自动跳转到提取选项区域
+    document.querySelector('.extraction-options').scrollIntoView({ 
+      behavior: 'smooth' 
+    });
+    
+    // 延迟关闭加载状态，让用户有足够时间看到反馈
+    setTimeout(() => setIsUrlLoading(false), 1000);
   };
 
   const handleExtractionSubmit = (e) => {
@@ -237,8 +265,14 @@ function UploadForm({ onVideoUpload, onVideoUrl, onExtractFrames }) {
                 <button
                   type="submit"
                   className="url-btn"
+                  disabled={isUrlLoading}
                 >
-                  加载
+                  {isUrlLoading ? (
+                    <>
+                      <span className="url-loading-indicator"></span>
+                      加载中...
+                    </>
+                  ) : '加载'}
                 </button>
               </div>
             </div>
