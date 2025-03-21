@@ -97,9 +97,9 @@ def upload_video():
         if 'video' not in request.files:
             return jsonify({'error': '没有找到视频文件'}), 400
             
-            file = request.files['video']
-            if file.filename == '':
-                return jsonify({'error': '未选择文件'}), 400
+        file = request.files['video']
+        if file.filename == '':
+            return jsonify({'error': '未选择文件'}), 400
             
         if file:
             # 生成安全的文件名
@@ -194,10 +194,10 @@ def extract_frames_api():
                 except Exception as e:
                     logger.error(f"下载视频时出错: {str(e)}", exc_info=True)
                     return jsonify({'error': f'下载视频失败: {str(e)}'}), 500
-        else:
-                # 确保使用相对路径或完整路径
-                if not os.path.isabs(video_path):
-                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_path)
+            
+            # 确保使用相对路径或完整路径
+            if not os.path.isabs(video_path):
+                video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_path)
                 
             # 检查视频文件是否存在
             if not os.path.exists(video_path):
@@ -277,9 +277,9 @@ def extract_frames_api():
                 
                 logger.info(f"成功上传 {upload_success_count}/{len(frame_files)} 个文件到R2存储")
                 logger.info(f"返回 {len(frames)} 个帧URL")
-        
-        # 返回结果
-        return jsonify({
+                
+                # 返回结果
+                return jsonify({
                     'frames': frames,
                     'message': f'成功提取 {frame_count} 帧',
                     'count': frame_count,
