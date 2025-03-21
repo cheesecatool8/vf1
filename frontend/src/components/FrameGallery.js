@@ -361,11 +361,6 @@ function FrameGallery({ frames, language, translations }) {
     });
   };
 
-  // 批量选择功能
-  const toggleSelectionMode = () => {
-    setIsSelecting(!isSelecting);
-  };
-
   // 全选
   const selectAllFrames = () => {
     setSelectedFrames(frames.map((_, index) => index));
@@ -374,22 +369,6 @@ function FrameGallery({ frames, language, translations }) {
   // 取消全选
   const deselectAllFrames = () => {
     setSelectedFrames([]);
-  };
-
-  // 选择范围（例如：每隔N帧选择一帧）
-  const selectInterval = (interval) => {
-    const newSelected = [];
-    for (let i = 0; i < frames.length; i += interval) {
-      newSelected.push(i);
-    }
-    setSelectedFrames(newSelected);
-  };
-
-  // 反选
-  const invertSelection = () => {
-    const allIndices = frames.map((_, index) => index);
-    const newSelected = allIndices.filter(index => !selectedFrames.includes(index));
-    setSelectedFrames(newSelected);
   };
 
   // 打开Lightbox
@@ -440,7 +419,7 @@ function FrameGallery({ frames, language, translations }) {
             className={`batch-toggle ${isSelecting ? 'active' : ''}`}
             type="button"
           >
-            {isSelecting ? getText('exitBatchMode') : getText('batchSelect')}
+            {isSelecting ? '完成选择' : '批量选择'}
           </button>
           
           {isSelecting && (
@@ -625,6 +604,7 @@ function FrameGallery({ frames, language, translations }) {
               src={getRenderUrl(currentFrame)} 
               alt={`${getText('frame')} ${frames.findIndex(frame => frame.url === currentFrame) + 1}`}
               className="lightbox-image" 
+              onError={(e) => handleImageError(e, currentFrame)}
             />
             
             <button className="lightbox-nav lightbox-next" onClick={viewNextImage} title="下一张图片" type="button">
@@ -642,7 +622,7 @@ function FrameGallery({ frames, language, translations }) {
                     checked={selectedFrames.includes(frames.findIndex(frame => frame.url === currentFrame))}
                     onChange={() => toggleFrameSelection(frames.findIndex(frame => frame.url === currentFrame))}
                   />
-                  {getText('select')}
+                  选择
                 </label>
                 <button 
                   className="lightbox-download-btn" 
