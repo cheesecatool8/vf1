@@ -52,7 +52,7 @@ function VideoUpload({ videoFile, onExtract, language, translations }) {
         <p>{getText('estimatedFrames')} {estimatedFrames}</p>
         
         <div className="fps-control">
-          <label htmlFor="fps-select">{getText('fpsRate')}</label>
+          <label htmlFor="fps-select">{getText('fps')}</label>
           <select id="fps-select" value={fps} onChange={handleFpsChange}>
             <option value="0.5">0.5 ({getText('framesPer2Sec')})</option>
             <option value="1">1 ({getText('framesPerSec')})</option>

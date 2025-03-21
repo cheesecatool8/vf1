@@ -323,10 +323,9 @@ function App() {
       
       console.log('上传视频:', videoFile);
       console.log('设置FPS:', options.fps || 1);
-      console.log('使用API地址:', API_URL);
       
-      // 发送请求到API - 使用正确的环境变量
-      const response = await fetch(`${API_URL}/api/extract-frames`, {
+      // 发送请求到API
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/extract-frames`, {
         method: 'POST',
         body: formData
       });
@@ -338,20 +337,6 @@ function App() {
       
       const result = await response.json();
       console.log('服务器响应:', result);
-      
-      // 修复帧URL，确保使用正确的存储服务器地址
-      if (result.frames && result.frames.length > 0) {
-        result.frames = result.frames.map(frame => {
-          if (frame.url && !frame.url.includes('storage.y.cheesecatool.com')) {
-            // 转换URL格式为storage URL
-            const pathParts = frame.url.split('/frames/');
-            if (pathParts.length > 1) {
-              frame.url = `${STORAGE_URL}/frames/${pathParts[1]}`;
-            }
-          }
-          return frame;
-        });
-      }
       
       // 更新提取的帧
       setFrames(result.frames || []);

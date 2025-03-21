@@ -8,10 +8,8 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
   const [format, setFormat] = useState('jpg');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [dragging, setDragging] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
   const [estimatedFrameCount, setEstimatedFrameCount] = useState(0);
-  const videoInputRef = useRef(null);
   const uploadAreaRef = useRef(null);
   const videoRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -285,7 +283,7 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
         <h3 className="options-title">提取选项</h3>
         
         <div className="form-group">
-          <label htmlFor="fps">{getText('fps')}</label>
+          <label htmlFor="fps">{getText('frameRate')}</label>
           <select 
             id="fps" 
             value={fps} 
