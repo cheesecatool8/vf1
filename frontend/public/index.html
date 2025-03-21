@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="html-root">
   <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-9YYZC8L91V"></script>
@@ -9,6 +9,22 @@
       gtag('js', new Date());
 
       gtag('config', 'G-9YYZC8L91V');
+    </script>
+    <script>
+      // 在页面加载时设置正确的语言
+      document.addEventListener('DOMContentLoaded', function() {
+        const savedLanguage = localStorage.getItem('language');
+        if (savedLanguage) {
+          document.getElementById('html-root').setAttribute('lang', savedLanguage);
+        }
+      });
+      
+      // 监听语言变化事件
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'language') {
+          document.getElementById('html-root').setAttribute('lang', e.newValue);
+        }
+      });
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
