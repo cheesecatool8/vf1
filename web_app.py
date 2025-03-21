@@ -27,7 +27,8 @@ try:
         ALLOWED_EXTENSIONS,
         MAX_CONTENT_LENGTH,
         FRAMES_BASE_URL,
-        CORS_ORIGINS
+        CORS_ORIGINS,
+        WORKER_URL
     )
     logger.info("从config.py加载配置成功")
 except ImportError as e:
@@ -40,6 +41,7 @@ except ImportError as e:
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 500 * 1024 * 1024))  # 500MB
     FRAMES_BASE_URL = os.environ.get('FRAMES_BASE_URL', '')
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
+    WORKER_URL = os.environ.get('WORKER_URL', '')
 
 # 设置Flask应用配置
 app.config['SECRET_KEY'] = SECRET_KEY
@@ -47,6 +49,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['FRAMES_FOLDER'] = FRAMES_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['FRAMES_BASE_URL'] = FRAMES_BASE_URL
+app.config['WORKER_URL'] = WORKER_URL
 
 # 初始化R2存储
 r2_storage = R2Storage()
@@ -233,8 +236,11 @@ def extract_frames_api():
                 # 将帧上传到R2存储
                 base_url = app.config.get('FRAMES_BASE_URL', '')
                 if not base_url:
-                    # 如果没有设置基础URL，使用当前请求的URL构建
-                    base_url = request.url_root.rstrip('/')
+                    # 如果没有设置基础URL，使用Worker URL
+                    base_url = app.config.get('WORKER_URL', '')
+                    if not base_url:
+                        # 如果没有设置Worker URL，则使用当前请求的URL
+                        base_url = request.url_root.rstrip('/')
                 
                 logger.info(f"使用基础URL: {base_url}")
                     
@@ -260,10 +266,11 @@ def extract_frames_api():
                     uploaded = r2_storage.upload_file(local_file_path, object_name, content_type)
                     if uploaded:
                         upload_success_count += 1
+                        logger.info(f"成功上传到R2: {object_name}")
                     else:
                         logger.warning(f"上传帧到R2失败: {object_name}")
                     
-                    # 构建完整URL，确保它是可访问的
+                    # 构建完整URL，使用Worker URL直接访问
                     frame_url = f"{base_url}/{object_name}"
                     frames.append({
                         'url': frame_url,
