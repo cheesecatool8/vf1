@@ -626,7 +626,7 @@ function FrameGallery({ frames, language, translations }) {
                     checked={selectedFrames.includes(frames.findIndex(frame => frame.url === currentFrame))}
                     onChange={() => toggleFrameSelection(frames.findIndex(frame => frame.url === currentFrame))}
                   />
-                  选择
+                  {getText('select')}
                 </label>
                 <button 
                   className="lightbox-download-btn" 

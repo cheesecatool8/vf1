@@ -139,6 +139,7 @@
             selectedFile: "Selected: ",
             frameNumberText: "Frame",
             downloadButtonText: "Download",
+            deleteButtonText: "Delete",
             selectAllButtonText: "Select All",
             deselectAllButtonText: "Deselect All",
             downloadSelectedButtonText: "Download Selected",
@@ -149,7 +150,14 @@
             fileUploadErrorText: "Please upload a video file",
             selectFrameErrorText: "Please select at least one frame to download",
             successExtractText: "Successfully extracted {count} frames",
-            downloadingText: "Downloading {count} frames"
+            downloadingText: "Downloading {count} frames",
+            videoInfo: {
+              duration: "Video Duration",
+              seconds: "seconds",
+              estimatedFrames: "Estimated Frames",
+              framesPerSecond: "frames per second",
+              selectFps: "Select Frame Rate"
+            }
           },
           zh: {
             navTitle: "芝士猫工具箱",
@@ -168,6 +176,7 @@
             selectedFile: "已选择：",
             frameNumberText: "帧",
             downloadButtonText: "下载",
+            deleteButtonText: "删除",
             selectAllButtonText: "全选",
             deselectAllButtonText: "取消选择",
             downloadSelectedButtonText: "下载选中",
@@ -178,7 +187,14 @@
             fileUploadErrorText: "请上传视频文件",
             selectFrameErrorText: "请至少选择一个帧进行下载",
             successExtractText: "成功提取 {count} 帧",
-            downloadingText: "正在下载 {count} 个帧"
+            downloadingText: "正在下载 {count} 个帧",
+            videoInfo: {
+              duration: "视频长度",
+              seconds: "秒",
+              estimatedFrames: "预计帧数",
+              framesPerSecond: "帧每秒",
+              selectFps: "选择帧率"
+            }
           },
           ja: {
             navTitle: "チーズキャットツールボックス",
@@ -197,6 +213,7 @@
             selectedFile: "選択済み：",
             frameNumberText: "フレーム",
             downloadButtonText: "ダウンロード",
+            deleteButtonText: "削除",
             selectAllButtonText: "すべて選択",
             deselectAllButtonText: "選択解除",
             downloadSelectedButtonText: "選択したものをダウンロード",
@@ -207,7 +224,14 @@
             fileUploadErrorText: "ビデオファイルをアップロードしてください",
             selectFrameErrorText: "ダウンロードするフレームを少なくとも1つ選択してください",
             successExtractText: "{count} フレームが正常に抽出されました",
-            downloadingText: "{count} フレームをダウンロード中"
+            downloadingText: "{count} フレームをダウンロード中",
+            videoInfo: {
+              duration: "動画の長さ",
+              seconds: "秒",
+              estimatedFrames: "予想フレーム数",
+              framesPerSecond: "フレーム/秒",
+              selectFps: "フレームレートを選択"
+            }
           },
           ko: {
             navTitle: "치즈캣 툴박스",
@@ -226,6 +250,7 @@
             selectedFile: "선택됨: ",
             frameNumberText: "프레임",
             downloadButtonText: "다운로드",
+            deleteButtonText: "삭제",
             selectAllButtonText: "모두 선택",
             deselectAllButtonText: "선택 취소",
             downloadSelectedButtonText: "선택한 항목 다운로드",
@@ -236,7 +261,14 @@
             fileUploadErrorText: "비디오 파일을 업로드하세요",
             selectFrameErrorText: "다운로드할 프레임을 하나 이상 선택하세요",
             successExtractText: "{count}개의 프레임을 성공적으로 추출했습니다",
-            downloadingText: "{count}개의 프레임 다운로드 중"
+            downloadingText: "{count}개의 프레임 다운로드 중",
+            videoInfo: {
+              duration: "비디오 길이",
+              seconds: "초",
+              estimatedFrames: "예상 프레임 수",
+              framesPerSecond: "프레임/초",
+              selectFps: "프레임 속도 선택"
+            }
           },
           es: {
             navTitle: "Caja de Herramientas CheeseCat",
@@ -255,17 +287,25 @@
             selectedFile: "Seleccionado: ",
             frameNumberText: "Fotograma",
             downloadButtonText: "Descargar",
+            deleteButtonText: "Eliminar",
             selectAllButtonText: "Seleccionar Todo",
             deselectAllButtonText: "Deseleccionar Todo",
             downloadSelectedButtonText: "Descargar Seleccionados",
             downloadAllButtonText: "Descargar Todos los Fotogramas",
             backToFormButtonText: "Volver al Formulario",
-            processingText: "Procesando video, por favor espere...",
+            processingText: "Procesando vídeo, por favor espere...",
             extractedFramesTitle: "Fotogramas Extraídos",
-            fileUploadErrorText: "Por favor suba un archivo de video",
-            selectFrameErrorText: "Por favor seleccione al menos un fotograma para descargar",
+            fileUploadErrorText: "Por favor suba un archivo de vídeo",
+            selectFrameErrorText: "Por favor selecciona al menos un fotograma para descargar",
             successExtractText: "Se extrajeron {count} fotogramas con éxito",
-            downloadingText: "Descargando {count} fotogramas"
+            downloadingText: "Descargando {count} fotogramas",
+            videoInfo: {
+              duration: "Duración del vídeo",
+              seconds: "segundos",
+              estimatedFrames: "Fotogramas estimados",
+              framesPerSecond: "fotogramas por segundo",
+              selectFps: "Seleccionar velocidad de fotogramas"
+            }
           },
           fr: {
             navTitle: "Boîte à Outils CheeseCat",
@@ -275,15 +315,16 @@
             supportedFormats: "Formats supportés: MP4, AVI, MOV, WMV, FLV, MKV",
             extractButton: "Extraire les Images",
             formLabels: {
-              fps: "Vitesse des Images (FPS)",
-              format: "Format de L'Image",
-              quality: "Qualité de L'Image",
-              startTime: "Heure de Début (Secondes, Optionnel)",
-              endTime: "Heure de Fin (Secondes, Optionnel)"
+              fps: "Fréquence d'images (IPS)",
+              format: "Format d'image",
+              quality: "Qualité d'image",
+              startTime: "Temps de début (secondes, optionnel)",
+              endTime: "Temps de fin (secondes, optionnel)"
             },
             selectedFile: "Sélectionné : ",
             frameNumberText: "Image",
             downloadButtonText: "Télécharger",
+            deleteButtonText: "Supprimer",
             selectAllButtonText: "Tout Sélectionner",
             deselectAllButtonText: "Tout Désélectionner",
             downloadSelectedButtonText: "Télécharger la Sélection",
@@ -294,7 +335,14 @@
             fileUploadErrorText: "Veuillez télécharger un fichier vidéo",
             selectFrameErrorText: "Veuillez sélectionner au moins une image à télécharger",
             successExtractText: "{count} images extraites avec succès",
-            downloadingText: "Téléchargement de {count} images"
+            downloadingText: "Téléchargement de {count} images",
+            videoInfo: {
+              duration: "Durée de la vidéo",
+              seconds: "secondes",
+              estimatedFrames: "Images estimées",
+              framesPerSecond: "images par seconde",
+              selectFps: "Sélectionner la fréquence d'images"
+            }
           },
           de: {
             navTitle: "CheeseCat Werkzeugkasten",
@@ -313,6 +361,7 @@
             selectedFile: "Ausgewählt: ",
             frameNumberText: "Frame",
             downloadButtonText: "Herunterladen",
+            deleteButtonText: "Löschen",
             selectAllButtonText: "Alle Auswählen",
             deselectAllButtonText: "Auswahl Aufheben",
             downloadSelectedButtonText: "Ausgewählte Herunterladen",
@@ -323,7 +372,14 @@
             fileUploadErrorText: "Bitte laden Sie eine Videodatei hoch",
             selectFrameErrorText: "Bitte wählen Sie mindestens einen Frame zum Herunterladen aus",
             successExtractText: "{count} Frames erfolgreich extrahiert",
-            downloadingText: "Herunterladen von {count} Frames"
+            downloadingText: "Herunterladen von {count} Frames",
+            videoInfo: {
+              duration: "Video-Dauer",
+              seconds: "Sekunden",
+              estimatedFrames: "Voraussichtliche Frames",
+              framesPerSecond: "Frames pro Sekunde",
+              selectFps: "Frame-Rate auswählen"
+            }
           }
         };
         

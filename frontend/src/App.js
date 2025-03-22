@@ -54,7 +54,13 @@ const TRANSLATIONS = {
     navTitle: "CheeseCat Toolbox",
     navLinkUpload: "Upload Video File",
     navLinkUrl: "Video URL Extraction",
-    navLinkYoutube: "YOUTUBE Video Analysis"
+    navLinkYoutube: "YOUTUBE Video Analysis",
+    delete: "Delete",
+    videoDuration: "Video Duration",
+    seconds: "seconds",
+    estimatedFrames: "Estimated Frames",
+    framesPerSecond: "frames per second",
+    selectFps: "Select Frame Rate"
   },
   zh: {
     title: "芝士猫视频帧万能无损提取工具",
@@ -89,7 +95,13 @@ const TRANSLATIONS = {
     navTitle: "芝士猫工具箱",
     navLinkUpload: "上传视频文件提取视频帧",
     navLinkUrl: "视频URL提取视频帧",
-    navLinkYoutube: "YOUTUBE视频数据分析"
+    navLinkYoutube: "YOUTUBE视频数据分析",
+    delete: "删除",
+    videoDuration: "视频长度",
+    seconds: "秒",
+    estimatedFrames: "预计帧数",
+    framesPerSecond: "帧每秒",
+    selectFps: "选择帧率"
   },
   ja: {
     title: "チーズキャット ビデオフレーム抽出ツール",
@@ -124,7 +136,13 @@ const TRANSLATIONS = {
     navTitle: "チーズキャットツールボックス",
     navLinkUpload: "ビデオファイルをアップロード",
     navLinkUrl: "ビデオURLからフレームを抽出",
-    navLinkYoutube: "YouTubeビデオデータ分析"
+    navLinkYoutube: "YouTubeビデオデータ分析",
+    delete: "削除",
+    videoDuration: "動画の長さ",
+    seconds: "秒",
+    estimatedFrames: "予想フレーム数",
+    framesPerSecond: "フレーム/秒",
+    selectFps: "フレームレートを選択"
   },
   ko: {
     title: "치즈캣 비디오 프레임 추출 도구",
@@ -159,7 +177,13 @@ const TRANSLATIONS = {
     navTitle: "치즈캣 툴박스",
     navLinkUpload: "비디오 파일 업로드",
     navLinkUrl: "비디오 URL에서 프레임 추출",
-    navLinkYoutube: "YOUTUBE 비디오 데이터 분석"
+    navLinkYoutube: "YOUTUBE 비디오 데이터 분석",
+    delete: "삭제",
+    videoDuration: "비디오 길이",
+    seconds: "초",
+    estimatedFrames: "예상 프레임 수",
+    framesPerSecond: "프레임/초",
+    selectFps: "프레임 속도 선택"
   },
   es: {
     title: "Herramienta de Extracción de Fotogramas de Vídeo CheeseCat",
@@ -194,7 +218,13 @@ const TRANSLATIONS = {
     navTitle: "Caja de herramientas CheeseCat",
     navLinkUpload: "Subir archivo de vídeo",
     navLinkUrl: "Extracción de URL de vídeo",
-    navLinkYoutube: "Análisis de vídeos de YouTube"
+    navLinkYoutube: "Análisis de vídeos de YouTube",
+    delete: "Eliminar",
+    videoDuration: "Duración del vídeo",
+    seconds: "segundos",
+    estimatedFrames: "Fotogramas estimados",
+    framesPerSecond: "fotogramas por segundo",
+    selectFps: "Seleccionar velocidad de fotogramas"
   },
   fr: {
     title: "CheeseCat - Outil d'Extraction de Frames Vidéo",
@@ -229,7 +259,13 @@ const TRANSLATIONS = {
     navTitle: "Boîte à outils CheeseCat",
     navLinkUpload: "Télécharger un fichier vidéo",
     navLinkUrl: "Extraction d'URL vidéo",
-    navLinkYoutube: "Analyse de vidéos YouTube"
+    navLinkYoutube: "Analyse de vidéos YouTube",
+    delete: "Supprimer",
+    videoDuration: "Durée de la vidéo",
+    seconds: "secondes",
+    estimatedFrames: "Images estimées",
+    framesPerSecond: "images par seconde",
+    selectFps: "Sélectionner la fréquence d'images"
   },
   de: {
     title: "CheeseCat Video-Frame-Extrahierungstool",
@@ -264,7 +300,13 @@ const TRANSLATIONS = {
     navTitle: "CheeseCat Toolbox",
     navLinkUpload: "Videodatei hochladen",
     navLinkUrl: "Video-URL-Extraktion",
-    navLinkYoutube: "YouTube-Videoanalyse"
+    navLinkYoutube: "YouTube-Videoanalyse",
+    delete: "Löschen",
+    videoDuration: "Videolänge",
+    seconds: "Sekunden",
+    estimatedFrames: "Geschätzte Frames",
+    framesPerSecond: "Frames pro Sekunde",
+    selectFps: "Bildrate auswählen"
   }
 };
 
