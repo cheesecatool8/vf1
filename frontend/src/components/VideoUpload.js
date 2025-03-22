@@ -1,78 +1,60 @@
-import React, { useState, useEffect } from 'react';
-
-function VideoUpload({ videoFile, onExtract, language, translations }) {
-  const [videoUrl, setVideoUrl] = useState(null);
-  const [videoDuration, setVideoDuration] = useState(0);
-  const [estimatedFrames, setEstimatedFrames] = useState(0);
-  const [fps, setFps] = useState(1);
-
-  // 获取翻译文本
-  const getText = (key) => {
-    return (translations[language] && translations[language][key]) || translations.en[key];
-  };
+// 提取视频帧
+const extractFrames = async () => {
+  if (!videoFile && !videoUrl) {
+    message.error('请先上传视频或提供视频URL');
+    return;
+  }
   
-  // 当文件变化时创建临时URL
-  useEffect(() => {
-    if (videoFile) {
-      const url = URL.createObjectURL(videoFile);
-      setVideoUrl(url);
-      
-      // 加载视频元数据以获取时长
-      const video = document.createElement('video');
-      video.src = url;
-      video.onloadedmetadata = () => {
-        setVideoDuration(video.duration);
-        // 使用当前fps计算预计帧数
-        setEstimatedFrames(Math.ceil(video.duration * fps));
-      };
-      
-      return () => {
-        URL.revokeObjectURL(url);
-      };
+  setIsExtracting(true);
+  setProgress(0);
+  
+  try {
+    // 准备API请求数据
+    const data = {
+      videoPath: videoFile.name,
+      fps: selectedFps,
+      quality: selectedQuality,
+      format: 'jpg',
+      startTime: startTime || '',
+      endTime: endTime || ''
+    };
+    
+    // 调用提取帧API
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/extract-frames`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || '提取帧失败');
     }
-  }, [videoFile, fps]);
-  
-  // 帧率变化时更新预计帧数
-  useEffect(() => {
-    if (videoDuration > 0) {
-      setEstimatedFrames(Math.ceil(videoDuration * fps));
-    }
-  }, [fps, videoDuration]);
-  
-  const handleFpsChange = (e) => {
-    setFps(parseFloat(e.target.value));
-  };
-
-  return videoUrl ? (
-    <div className="video-preview">
-      <video src={videoUrl} controls className="preview-video" />
-      
-      <div className="video-info">
-        <p>{getText('videoLength')} {Math.round(videoDuration)} {getText('seconds')}</p>
-        <p>{getText('estimatedFrames')} {estimatedFrames}</p>
-        
-        <div className="fps-control">
-          <label htmlFor="fps-select">{getText('fpsLabel')}</label>
-          <select id="fps-select" value={fps} onChange={handleFpsChange}>
-            <option value="0.5">0.5 ({getText('framesPer2Sec')})</option>
-            <option value="1">1 ({getText('framesPerSec')})</option>
-            <option value="2">2 ({getText('framesPerSec2')})</option>
-            <option value="5">5 ({getText('framesPerSec5')})</option>
-            <option value="10">10 ({getText('framesPerSec10')})</option>
-            <option value="15">15 ({getText('framesPerSec15')})</option>
-            <option value="30">30 ({getText('framesPerSec30')})</option>
-          </select>
-        </div>
-        
-        <button 
-          className="extract-button"
-          onClick={() => onExtract({ fps })}
-        >
-          {getText('uploadVideo')}
-        </button>
-      </div>
-    </div>
-  ) : null;
-}
-
-export default VideoUpload; 
+    
+    const result = await response.json();
+    
+    // 更新帧数据，使用代理URL处理可能的CORS问题
+    const framesWithProxy = result.frames.map(frame => {
+      return {
+        ...frame,
+        url: frame.url.includes('storage.y.cheesecatool.com') 
+          ? `${process.env.REACT_APP_API_URL}/api/proxy-image?url=${encodeURIComponent(frame.url)}`
+          : frame.url
+      };
+    });
+    
+    // 更新帧信息
+    setFrames(framesWithProxy);
+    message.success(`成功提取 ${framesWithProxy.length} 帧`);
+    
+    // 转到帧浏览页面
+    setCurrentStep(2);
+  } catch (error) {
+    console.error('提取帧出错:', error);
+    message.error(`提取帧失败: ${error.message}`);
+  } finally {
+    setIsExtracting(false);
+  }
+}; 

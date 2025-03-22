@@ -1,17 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 import './VideoPlayer.css';
 
-function VideoPlayer({ videoUrl, language, translations }) {
+function VideoPlayer({ videoUrl }) {
   const videoRef = useRef(null);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
-
-  // 获取翻译文本
-  const getText = (key) => {
-    return (translations[language] && translations[language][key]) || translations.en[key];
-  };
 
   useEffect(() => {
     const video = videoRef.current;
@@ -78,7 +73,7 @@ function VideoPlayer({ videoUrl, language, translations }) {
         className="video-player"
         style={{ maxHeight: '250px', margin: '0 auto', display: 'block' }}
       >
-        {getText('browserNotSupported')}
+        您的浏览器不支持视频标签。
       </video>
       
       <div className="mt-4 px-2">

@@ -3,8 +3,6 @@ import './App.css';
 import UploadForm from './components/UploadForm';
 import FrameGallery from './components/FrameGallery';
 import Footer from './components/Footer';
-import VideoUpload from './components/VideoUpload';
-import translations from './translations';
 
 // 使用环境变量或默认值
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.y.cheesecatool.com';
@@ -51,7 +49,8 @@ const TRANSLATIONS = {
     actions: "Actions",
     loading: "Loading images...",
     contact: "For suggestions or feedback, please contact: imluluj8@outlook.com",
-    // 顶部导航栏
+    sslErrorNotice: "If images fail to load, click the 'Not Secure' button in the browser address bar and allow unsafe content",
+    imageLoadError: "Failed to load",
     navTitle: "CheeseCat Toolbox",
     navLinkUpload: "Upload Video File",
     navLinkUrl: "Video URL Extraction",
@@ -85,7 +84,8 @@ const TRANSLATIONS = {
     actions: "操作",
     loading: "加载图片中...",
     contact: "如有需求或建议反馈，欢迎联系：imluluj8@outlook.com",
-    // 顶部导航栏
+    sslErrorNotice: "如果图片无法加载，请点击浏览器地址栏右侧\"不安全\"按钮，允许加载不安全内容",
+    imageLoadError: "加载失败",
     navTitle: "芝士猫工具箱",
     navLinkUpload: "上传视频文件提取视频帧",
     navLinkUrl: "视频URL提取视频帧",
@@ -119,7 +119,8 @@ const TRANSLATIONS = {
     actions: "アクション",
     loading: "画像を読み込み中...",
     contact: "ご意見やフィードバックは、こちらまでご連絡ください: imluluj8@outlook.com",
-    // 顶部导航栏
+    sslErrorNotice: "画像が読み込めない場合は、ブラウザのアドレスバーの「保護されていない通信」ボタンをクリックして、安全でないコンテンツを許可してください",
+    imageLoadError: "読み込み失敗",
     navTitle: "チーズキャットツールボックス",
     navLinkUpload: "ビデオファイルをアップロード",
     navLinkUrl: "ビデオURLからフレームを抽出",
@@ -153,10 +154,11 @@ const TRANSLATIONS = {
     actions: "작업",
     loading: "이미지 로딩 중...",
     contact: "제안이나 피드백이 있으시면 연락주세요: imluluj8@outlook.com",
-    // 顶部导航栏
+    sslErrorNotice: "이미지가 로드되지 않으면 브라우저 주소 표시줄의 '안전하지 않음' 버튼을 클릭하고 안전하지 않은 콘텐츠를 허용하세요",
+    imageLoadError: "로드 실패",
     navTitle: "치즈캣 툴박스",
     navLinkUpload: "비디오 파일 업로드",
-    navLinkUrl: "비디오 URL 추출",
+    navLinkUrl: "비디오 URL에서 프레임 추출",
     navLinkYoutube: "YOUTUBE 비디오 데이터 분석"
   },
   es: {
@@ -187,11 +189,12 @@ const TRANSLATIONS = {
     actions: "Acciones",
     loading: "Cargando imágenes...",
     contact: "Para sugerencias o comentarios, contacta: imluluj8@outlook.com",
-    // 顶部导航栏
-    navTitle: "Caja de Herramientas CheeseCat",
-    navLinkUpload: "Subir Archivo de Vídeo",
-    navLinkUrl: "Extracción de URL de Vídeo",
-    navLinkYoutube: "Análisis de Datos de Vídeo de YOUTUBE"
+    sslErrorNotice: "Si las imágenes no se cargan, haga clic en el botón 'No seguro' en la barra de direcciones del navegador y permita el contenido no seguro",
+    imageLoadError: "Error de carga",
+    navTitle: "Caja de herramientas CheeseCat",
+    navLinkUpload: "Subir archivo de vídeo",
+    navLinkUrl: "Extracción de URL de vídeo",
+    navLinkYoutube: "Análisis de vídeos de YouTube"
   },
   fr: {
     title: "CheeseCat - Outil d'Extraction de Frames Vidéo",
@@ -221,11 +224,12 @@ const TRANSLATIONS = {
     actions: "Actions",
     loading: "Chargement des images...",
     contact: "Pour suggestions ou commentaires, contactez: imluluj8@outlook.com",
-    // 顶部导航栏
-    navTitle: "Boîte à Outils CheeseCat",
-    navLinkUpload: "Télécharger un Fichier Vidéo",
-    navLinkUrl: "Extraction d'URL Vidéo",
-    navLinkYoutube: "Analyse de Données Vidéo YOUTUBE"
+    sslErrorNotice: "Si les images ne se chargent pas, cliquez sur le bouton 'Non sécurisé' dans la barre d'adresse du navigateur et autorisez le contenu non sécurisé",
+    imageLoadError: "Échec de chargement",
+    navTitle: "Boîte à outils CheeseCat",
+    navLinkUpload: "Télécharger un fichier vidéo",
+    navLinkUrl: "Extraction d'URL vidéo",
+    navLinkYoutube: "Analyse de vidéos YouTube"
   },
   de: {
     title: "CheeseCat Video-Frame-Extrahierungstool",
@@ -255,11 +259,12 @@ const TRANSLATIONS = {
     actions: "Aktionen",
     loading: "Bilder werden geladen...",
     contact: "Für Vorschläge oder Feedback kontaktieren Sie: imluluj8@outlook.com",
-    // 顶部导航栏
-    navTitle: "CheeseCat Werkzeugkasten",
-    navLinkUpload: "Video-Datei hochladen",
+    sslErrorNotice: "Wenn Bilder nicht geladen werden können, klicken Sie auf die Schaltfläche 'Nicht sicher' in der Adressleiste des Browsers und erlauben Sie unsichere Inhalte",
+    imageLoadError: "Laden fehlgeschlagen",
+    navTitle: "CheeseCat Toolbox",
+    navLinkUpload: "Videodatei hochladen",
     navLinkUrl: "Video-URL-Extraktion",
-    navLinkYoutube: "YOUTUBE-Videodatenanalyse"
+    navLinkYoutube: "YouTube-Videoanalyse"
   }
 };
 
@@ -273,10 +278,8 @@ console.log('环境变量:', {
 function App() {
   const [videoFile, setVideoFile] = useState(null);
   const [frames, setFrames] = useState([]);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isExtracting, setIsExtracting] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   
   // 使用 'en' 作为默认语言，仅当本地存储中有值时才使用本地存储的值
   const [language, setLanguage] = useState(() => {
@@ -298,55 +301,11 @@ function App() {
     return (TRANSLATIONS[language] && TRANSLATIONS[language][key]) || TRANSLATIONS.en[key];
   };
 
-  // 处理视频上传
+  // 处理上传的视频文件
   const handleVideoUpload = (file) => {
     setVideoFile(file);
-    setCurrentStep(1);
-  };
-  
-  // 处理视频帧提取
-  const handleExtractFrames = async (options) => {
-    if (!videoFile) {
-      setError(getText('noVideoUploaded'));
-      return;
-    }
-    
-    setIsExtracting(true);
-    setProgress(0);
-    setError(null);
-    
-    try {
-      // 创建FormData对象发送文件
-      const formData = new FormData();
-      formData.append('video', videoFile);
-      formData.append('fps', options.fps || 1);
-      
-      console.log('上传视频:', videoFile);
-      console.log('设置FPS:', options.fps || 1);
-      
-      // 发送请求到API
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/extract-frames`, {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || getText('extractionFailed'));
-      }
-      
-      const result = await response.json();
-      console.log('服务器响应:', result);
-      
-      // 更新提取的帧
-      setFrames(result.frames || []);
-      setCurrentStep(2);
-    } catch (error) {
-      console.error('提取帧出错:', error);
-      setError(error.message);
-    } finally {
-      setIsExtracting(false);
-    }
+    setFrames([]);
+    setError('');
   };
 
   // 切换语言菜单显示状态
@@ -366,6 +325,87 @@ function App() {
   // 获取当前语言信息
   const getCurrentLanguage = () => {
     return LANGUAGES.find(lang => lang.code === language) || LANGUAGES[0];
+  };
+
+  // 提取帧
+  const handleExtractFrames = async (options) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      console.log('提取选项:', options);
+      
+      let requestData = {
+        fps: parseFloat(options.fps) || 1,
+        quality: parseInt(options.quality) || 90,
+        format: options.format || 'jpg',
+        startTime: options.startTime ? parseFloat(options.startTime) : null,
+        endTime: options.endTime ? parseFloat(options.endTime) : null
+      };
+      
+      if (videoFile) {
+        // 如果是文件上传，先上传文件
+        const uploadFormData = new FormData();
+        uploadFormData.append('video', videoFile);
+        console.log('上传文件:', videoFile.name, videoFile.size);
+        
+        const uploadResponse = await fetch(`${API_URL}/api/upload-video`, {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error(`上传视频失败: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        requestData.videoPath = uploadResult.videoPath || uploadResult.filename || videoFile.name;
+      } else {
+        throw new Error('请先上传视频文件');
+      }
+      
+      console.log('发送JSON请求数据:', requestData);
+      
+      // 修改API请求路径为正确的端点
+      const apiUrl = `${API_URL}/api/extract-frames`;
+      console.log('发送请求到:', apiUrl);
+      
+      // 发送到后端API，使用JSON格式
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+      
+      console.log('服务器响应状态:', response.status);
+      
+      if (!response.ok) {
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || `请求失败 (${response.status}): ${response.statusText}`;
+        } catch (e) {
+          errorMessage = `请求失败 (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const data = await response.json();
+      console.log('服务器响应数据:', data);
+      
+      if (!data.frames || !Array.isArray(data.frames)) {
+        throw new Error('服务器返回数据格式错误');
+      }
+      setFrames(data.frames);
+    } catch (err) {
+      console.error('提取帧时出错:', err);
+      // 显示更详细的错误信息
+      setError(`处理错误: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -410,59 +450,41 @@ function App() {
       </div>
       
       <div className="container">
-        <div className="app-content">
-          <div className="title-section">
-            <img src="/logo.png" alt={getText('logoAlt')} className="logo-icon" />
-            <h1>{getText('pageTitle')}</h1>
-          </div>
-          
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-          
-          {/* 步骤1: 上传视频 */}
-          {currentStep === 0 && (
-            <UploadForm 
-              onVideoUpload={handleVideoUpload} 
-              getText={getText}
-            />
-          )}
-          
-          {/* 步骤2: 预览视频并提取帧 */}
-          {currentStep === 1 && videoFile && (
-            <VideoUpload 
-              videoFile={videoFile} 
-              onExtract={handleExtractFrames}
-              language={language}
-              translations={translations}
-            />
-          )}
-          
-          {/* 步骤3: 显示提取的帧 */}
-          {currentStep === 2 && frames.length > 0 && (
-            <FrameGallery 
-              frames={frames} 
-              getText={getText}
-            />
-          )}
-          
-          {isExtracting && (
-            <div className="loading-container">
-              <div className="spinner"></div>
-              <p>{getText('processing')}</p>
-              {progress > 0 && (
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-              )}
-            </div>
-          )}
+        {/* 标题与图标 */}
+        <div className="title-with-icon">
+          <img src="images/cat-icon.png" alt="猫咪图标" className="cat-icon" />
+          <h1 className="text-3xl font-bold">{getText('title')}</h1>
         </div>
+        
+        {/* 表单区域 */}
+        <div className="bg-white rounded-lg mb-8">
+          <UploadForm 
+            onVideoUpload={handleVideoUpload} 
+            onExtractFrames={handleExtractFrames}
+            language={language}
+            translations={TRANSLATIONS}
+          />
+        </div>
+        
+        {error && (
+          <div className="flash-message">
+            {error}
+          </div>
+        )}
+        
+        {loading && (
+          <div className="loading" style={{display: 'block'}}>
+            <div className="spinner"></div>
+            <p>{getText('processing')}</p>
+          </div>
+        )}
+        
+        {frames.length > 0 && (
+          <div id="results-section" style={{display: 'block'}}>
+            <h2 className="text-xl font-semibold mb-4">{getText('extractedFrames')}</h2>
+            <FrameGallery frames={frames} language={language} translations={TRANSLATIONS} />
+          </div>
+        )}
       </div>
       
       <Footer language={language} translations={TRANSLATIONS} />
