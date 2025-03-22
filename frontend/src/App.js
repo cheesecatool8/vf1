@@ -60,7 +60,12 @@ const TRANSLATIONS = {
     seconds: "seconds",
     estimatedFrames: "Estimated Frames",
     framesPerSecond: "frames per second",
-    selectFps: "Select Frame Rate"
+    selectFps: "Select Frame Rate",
+    remove: "Remove",
+    extractionOptions: "Extraction Options",
+    extractionSummary: "Video length: {0}m{1}s | Estimated frames to extract: {2}",
+    minutes: "minutes",
+    and: "and"
   },
   zh: {
     title: "芝士猫视频帧万能无损提取工具",
@@ -101,7 +106,12 @@ const TRANSLATIONS = {
     seconds: "秒",
     estimatedFrames: "预计帧数",
     framesPerSecond: "帧每秒",
-    selectFps: "选择帧率"
+    selectFps: "选择帧率",
+    remove: "移除",
+    extractionOptions: "提取选项",
+    extractionSummary: "视频长度: {0}分{1}秒 | 估计将提取 {2} 帧",
+    minutes: "分钟",
+    and: "和"
   },
   ja: {
     title: "チーズキャット ビデオフレーム抽出ツール",
@@ -142,7 +152,12 @@ const TRANSLATIONS = {
     seconds: "秒",
     estimatedFrames: "予想フレーム数",
     framesPerSecond: "フレーム/秒",
-    selectFps: "フレームレートを選択"
+    selectFps: "フレームレートを選択",
+    remove: "削除する",
+    extractionOptions: "抽出オプション",
+    extractionSummary: "動画の長さ: {0}分{1}秒 | 推定フレーム数: {2}",
+    minutes: "分",
+    and: "と"
   },
   ko: {
     title: "치즈캣 비디오 프레임 추출 도구",
@@ -183,7 +198,12 @@ const TRANSLATIONS = {
     seconds: "초",
     estimatedFrames: "예상 프레임 수",
     framesPerSecond: "프레임/초",
-    selectFps: "프레임 속도 선택"
+    selectFps: "프레임 속도 선택",
+    remove: "제거",
+    extractionOptions: "추출 옵션",
+    extractionSummary: "비디오 길이: {0}분{1}초 | 추출할 예상 프레임: {2}",
+    minutes: "분",
+    and: "및"
   },
   es: {
     title: "Herramienta de Extracción de Fotogramas de Vídeo CheeseCat",
@@ -224,7 +244,12 @@ const TRANSLATIONS = {
     seconds: "segundos",
     estimatedFrames: "Fotogramas estimados",
     framesPerSecond: "fotogramas por segundo",
-    selectFps: "Seleccionar velocidad de fotogramas"
+    selectFps: "Seleccionar velocidad de fotogramas",
+    remove: "Eliminar",
+    extractionOptions: "Opciones de extracción",
+    extractionSummary: "Duración del vídeo: {0}m{1}s | Fotogramas estimados: {2}",
+    minutes: "minutos",
+    and: "y"
   },
   fr: {
     title: "CheeseCat - Outil d'Extraction de Frames Vidéo",
@@ -265,7 +290,12 @@ const TRANSLATIONS = {
     seconds: "secondes",
     estimatedFrames: "Images estimées",
     framesPerSecond: "images par seconde",
-    selectFps: "Sélectionner la fréquence d'images"
+    selectFps: "Sélectionner la fréquence d'images",
+    remove: "Supprimer",
+    extractionOptions: "Options d'extraction",
+    extractionSummary: "Durée de la vidéo: {0}m{1}s | Images estimées: {2}",
+    minutes: "minutes",
+    and: "et"
   },
   de: {
     title: "CheeseCat Video-Frame-Extrahierungstool",
@@ -306,7 +336,12 @@ const TRANSLATIONS = {
     seconds: "Sekunden",
     estimatedFrames: "Geschätzte Frames",
     framesPerSecond: "Frames pro Sekunde",
-    selectFps: "Bildrate auswählen"
+    selectFps: "Bildrate auswählen",
+    remove: "Entfernen",
+    extractionOptions: "Extraktionsoptionen",
+    extractionSummary: "Videolänge: {0}m{1}s | Geschätzte Frames: {2}",
+    minutes: "Minuten",
+    and: "und"
   }
 };
 

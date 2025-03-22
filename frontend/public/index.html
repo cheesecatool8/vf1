@@ -20,6 +20,10 @@
           // 更新静态页面的语言显示
           updateStaticPageLanguage(savedLanguage);
         }
+
+        // 设置全局变量
+        window.videoDuration = 0;
+        window.estimatedFrameCount = 0;
       });
       
       // 监听语言变化事件
@@ -39,6 +43,9 @@
         const uploadTitle = document.querySelector('#upload-area h3');
         const supportedFormats = document.querySelector('#upload-area p');
         const extractBtn = document.querySelector('#extract-btn');
+        const deleteBtn = document.querySelector('.remove-file-btn');
+        const extractionOptions = document.querySelector('.options-title');
+        const extractionSummary = document.querySelector('.extraction-summary p');
         
         // 更新帧率选项
         const fpsSelect = document.getElementById('fps');
@@ -157,7 +164,9 @@
               estimatedFrames: "Estimated Frames",
               framesPerSecond: "frames per second",
               selectFps: "Select Frame Rate"
-            }
+            },
+            extractionOptions: "Extraction Options",
+            extractionSummary: "Extracted {0} minutes and {1} seconds, {2} frames"
           },
           zh: {
             navTitle: "芝士猫工具箱",
@@ -194,7 +203,9 @@
               estimatedFrames: "预计帧数",
               framesPerSecond: "帧每秒",
               selectFps: "选择帧率"
-            }
+            },
+            extractionOptions: "提取选项",
+            extractionSummary: "提取了 {0} 分钟 {1} 秒，共提取了 {2} 帧"
           },
           ja: {
             navTitle: "チーズキャットツールボックス",
@@ -231,7 +242,9 @@
               estimatedFrames: "予想フレーム数",
               framesPerSecond: "フレーム/秒",
               selectFps: "フレームレートを選択"
-            }
+            },
+            extractionOptions: "抽出オプション",
+            extractionSummary: "抽出時間は {0} 分 {1} 秒で、合計 {2} フレームを抽出しました"
           },
           ko: {
             navTitle: "치즈캣 툴박스",
@@ -268,7 +281,9 @@
               estimatedFrames: "예상 프레임 수",
               framesPerSecond: "프레임/초",
               selectFps: "프레임 속도 선택"
-            }
+            },
+            extractionOptions: "추출 옵션",
+            extractionSummary: "{0}분 {1}초 동안 총 {2}개의 프레임을 추출했습니다"
           },
           es: {
             navTitle: "Caja de Herramientas CheeseCat",
@@ -305,7 +320,9 @@
               estimatedFrames: "Fotogramas estimados",
               framesPerSecond: "fotogramas por segundo",
               selectFps: "Seleccionar velocidad de fotogramas"
-            }
+            },
+            extractionOptions: "Opciones de Extracción",
+            extractionSummary: "Extracción realizada en {0} minutos y {1} segundos, {2} fotogramas"
           },
           fr: {
             navTitle: "Boîte à Outils CheeseCat",
@@ -342,7 +359,9 @@
               estimatedFrames: "Images estimées",
               framesPerSecond: "images par seconde",
               selectFps: "Sélectionner la fréquence d'images"
-            }
+            },
+            extractionOptions: "Options d'Extraction",
+            extractionSummary: "Extraction effectuée en {0} minutes et {1} secondes, {2} images"
           },
           de: {
             navTitle: "CheeseCat Werkzeugkasten",
@@ -379,7 +398,9 @@
               estimatedFrames: "Voraussichtliche Frames",
               framesPerSecond: "Frames pro Sekunde",
               selectFps: "Frame-Rate auswählen"
-            }
+            },
+            extractionOptions: "Extraktionsoptionen",
+            extractionSummary: "Extraktion dauerte {0} Minuten und {1} Sekunden, {2} Frames"
           }
         };
         
@@ -416,6 +437,25 @@
               }
             }
           });
+        }
+        
+        // 更新删除按钮文本
+        if (deleteBtn) {
+          deleteBtn.textContent = currentTranslation.deleteButtonText;
+        }
+        
+        // 更新提取选项标题
+        if (extractionOptions) {
+          extractionOptions.textContent = currentTranslation.extractionOptions;
+        }
+        
+        // 更新视频信息区域
+        if (extractionSummary && window.videoDuration && window.estimatedFrameCount) {
+          const summaryTemplate = currentTranslation.extractionSummary;
+          extractionSummary.textContent = summaryTemplate
+            .replace('{0}', Math.floor(window.videoDuration / 60))
+            .replace('{1}', Math.floor(window.videoDuration % 60))
+            .replace('{2}', window.estimatedFrameCount);
         }
         
         // 更新静态文本元素
@@ -1090,6 +1130,22 @@
                 if (videoInput.files.length > 0) {
                     fileName.textContent = getTranslation('selectedFile') + videoInput.files[0].name;
                     uploadArea.style.borderColor = '#2ecc71';
+                    
+                    // 创建视频元素以获取视频时长
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(videoInput.files[0]);
+                    video.onloadedmetadata = function() {
+                        window.videoDuration = video.duration;
+                        // 默认帧率为1fps
+                        const fps = parseFloat(document.getElementById('fps').value);
+                        window.estimatedFrameCount = Math.ceil(video.duration * fps);
+                        
+                        // 创建或更新视频信息显示
+                        showVideoInfo();
+                        
+                        // 释放URL
+                        URL.revokeObjectURL(video.src);
+                    };
                 }
             });
             
@@ -1239,6 +1295,51 @@
             
             function showMessage(message, type = 'error') {
                 messageArea.innerHTML = `<li class="flash-message ${type === 'success' ? 'success' : ''}">${message}</li>`;
+            }
+
+            // 当帧率改变时更新预估帧数
+            document.getElementById('fps').addEventListener('change', function() {
+                if (window.videoDuration > 0) {
+                    const fps = parseFloat(this.value);
+                    window.estimatedFrameCount = Math.ceil(window.videoDuration * fps);
+                    showVideoInfo();
+                }
+            });
+            
+            // 显示视频信息
+            function showVideoInfo() {
+                const language = localStorage.getItem('language') || 'en';
+                const translations = {
+                    en: { extractionSummary: "Video length: {0}m{1}s | Estimated frames to extract: {2}" },
+                    zh: { extractionSummary: "视频长度: {0}分{1}秒 | 估计将提取 {2} 帧" },
+                    ja: { extractionSummary: "動画の長さ: {0}分{1}秒 | 推定フレーム数: {2}" },
+                    ko: { extractionSummary: "비디오 길이: {0}분{1}초 | 추출할 예상 프레임: {2}" },
+                    es: { extractionSummary: "Duración del vídeo: {0}m{1}s | Fotogramas estimados: {2}" },
+                    fr: { extractionSummary: "Durée de la vidéo: {0}m{1}s | Images estimées: {2}" },
+                    de: { extractionSummary: "Videolänge: {0}m{1}s | Geschätzte Frames: {2}" }
+                };
+                
+                // 获取当前语言的翻译或默认为英文
+                const summaryTemplate = (translations[language] && translations[language].extractionSummary) || translations.en.extractionSummary;
+                
+                // 查找或创建视频信息显示区域
+                let infoDiv = document.querySelector('.extraction-summary');
+                if (!infoDiv) {
+                    infoDiv = document.createElement('div');
+                    infoDiv.className = 'extraction-summary';
+                    const p = document.createElement('p');
+                    infoDiv.appendChild(p);
+                    
+                    // 插入到上传区域之后，提取选项之前
+                    document.querySelector('.upload-area').after(infoDiv);
+                } 
+                
+                // 更新信息
+                const p = infoDiv.querySelector('p');
+                p.textContent = summaryTemplate
+                    .replace('{0}', Math.floor(window.videoDuration / 60))
+                    .replace('{1}', Math.floor(window.videoDuration % 60))
+                    .replace('{2}', window.estimatedFrameCount);
             }
         }
     </script>

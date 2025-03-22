@@ -179,7 +179,7 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
         const effectiveDuration = endT - startT;
         const frames = Math.ceil(effectiveDuration * fps);
         setEstimatedFrameCount(frames);
-      } else {
+    } else {
         setEstimatedFrameCount(0);
       }
     }
@@ -235,13 +235,13 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
           <div className="upload-label">
             <div className="upload-icon">
               <img src="images/upload-icon.png" alt="uoload" style={{width: '64px', height: '64px', margin: '0 auto'}} />
-            </div>
+        </div>
             <div className="upload-text">{getText('uploadTitle')}</div>
             <div className="upload-hint">{getText('supportedFormats')}</div>
-            <input 
-              type="file" 
+            <input
+              type="file"
               className="hidden-input" 
-              accept="video/*" 
+              accept="video/*"
               onChange={handleFileChange}
               ref={videoInputRef}
             />
@@ -253,7 +253,7 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
                 <div className="file-name" title={videoFile.name}>{videoFile.name}</div>
                 <div className="file-size">{(videoFile.size / (1024 * 1024)).toFixed(2)} MB</div>
               </div>
-              <button 
+                <button
                 type="button" 
                 className="remove-file-btn"
                 onClick={(e) => {
@@ -261,9 +261,9 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
                   removeFile();
                 }}
               >
-                移除
-              </button>
-            </div>
+                {getText('remove')}
+                </button>
+              </div>
             
             <div className="video-preview-container">
               <video 
@@ -277,21 +277,26 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
           </div>
         )}
       </div>
-      
+
       {/* 如果有视频并且已加载持续时间，显示估计帧数 */}
       {videoFile && estimatedFrameCount > 0 && (
         <div className="extraction-summary">
-          <p>视频长度: <strong>{Math.floor(videoDuration / 60)}分{Math.floor(videoDuration % 60)}秒</strong> | 估计将提取 <strong>{estimatedFrameCount}</strong> 帧</p>
+          <p>
+            {getText('extractionSummary')
+              .replace('{0}', Math.floor(videoDuration / 60))
+              .replace('{1}', Math.floor(videoDuration % 60))
+              .replace('{2}', estimatedFrameCount)}
+          </p>
         </div>
       )}
       
       <div className="extraction-options">
-        <h3 className="options-title">提取选项</h3>
+        <h3 className="options-title">{getText('extractionOptions')}</h3>
         
-        <div className="form-group">
+            <div className="form-group">
           <label htmlFor="fps">{getText('fps')}</label>
-          <select 
-            id="fps" 
+              <select
+                id="fps"
             value={fps} 
             onChange={(e) => setFps(parseFloat(e.target.value))}
           >
@@ -300,22 +305,22 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
                 {option.label}
               </option>
             ))}
-          </select>
-        </div>
-        
-        <div className="form-group">
+              </select>
+            </div>
+
+            <div className="form-group">
           <label htmlFor="format">{getText('imageFormat')}</label>
-          <select 
-            id="format" 
+              <select
+                id="format"
             value={format} 
             onChange={(e) => setFormat(e.target.value)}
-          >
-            <option value="jpg">JPG</option>
-            <option value="png">PNG</option>
-          </select>
-        </div>
-        
-        <div className="form-group">
+              >
+                <option value="jpg">JPG</option>
+                <option value="png">PNG</option>
+              </select>
+            </div>
+
+            <div className="form-group">
           <label htmlFor="quality">
             {getText('imageQuality')} <span className="quality-display">{quality}</span>
           </label>
@@ -332,31 +337,31 @@ function UploadForm({ onVideoUpload, onExtractFrames, language, translations }) 
         <div className="param-group">
           <div className="form-group">
             <label htmlFor="startTime">{getText('startTime')}</label>
-            <input 
-              type="number" 
-              id="startTime" 
-              min="0" 
-              step="0.1" 
+              <input
+                type="number"
+                id="startTime"
+                min="0"
+                step="0.1"
               value={startTime} 
               onChange={(e) => setStartTime(e.target.value)}
               placeholder={language === 'zh' ? "从视频开始" : "From video start"}
-            />
-          </div>
-          
-          <div className="form-group">
+              />
+            </div>
+
+            <div className="form-group">
             <label htmlFor="endTime">{getText('endTime')}</label>
-            <input 
-              type="number" 
-              id="endTime" 
-              min="0" 
-              step="0.1" 
+              <input
+                type="number"
+                id="endTime"
+                min="0"
+                step="0.1"
               value={endTime} 
               onChange={(e) => setEndTime(e.target.value)}
               placeholder={language === 'zh' ? "到视频结束" : "To video end"}
-            />
+              />
+            </div>
           </div>
-        </div>
-        
+
         <button type="submit" className="extract-btn">{getText('extractButton')}</button>
       </div>
     </form>
